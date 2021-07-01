@@ -1,0 +1,598 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C039542A268DF30600E2ACB9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0395429268DF30600E2ACB9 /* AppDelegate.swift */; };
+		C039542C268DF30600E2ACB9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039542B268DF30600E2ACB9 /* SceneDelegate.swift */; };
+		C039542E268DF30600E2ACB9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039542D268DF30600E2ACB9 /* ViewController.swift */; };
+		C0395431268DF30600E2ACB9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C039542F268DF30600E2ACB9 /* Main.storyboard */; };
+		C0395433268DF30700E2ACB9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C0395432268DF30700E2ACB9 /* Assets.xcassets */; };
+		C0395436268DF30700E2ACB9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C0395434268DF30700E2ACB9 /* LaunchScreen.storyboard */; };
+		C0395441268DF30700E2ACB9 /* AVA_OSMTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0395440268DF30700E2ACB9 /* AVA_OSMTests.swift */; };
+		C039544C268DF30800E2ACB9 /* AVA_OSMUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039544B268DF30800E2ACB9 /* AVA_OSMUITests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C039543D268DF30700E2ACB9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C039541E268DF30600E2ACB9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C0395425268DF30600E2ACB9;
+			remoteInfo = "AVA OSM";
+		};
+		C0395448268DF30800E2ACB9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C039541E268DF30600E2ACB9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C0395425268DF30600E2ACB9;
+			remoteInfo = "AVA OSM";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		C0395426268DF30600E2ACB9 /* AVA OSM.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AVA OSM.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C0395429268DF30600E2ACB9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		C039542B268DF30600E2ACB9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		C039542D268DF30600E2ACB9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		C0395430268DF30600E2ACB9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		C0395432268DF30700E2ACB9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C0395435268DF30700E2ACB9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		C0395437268DF30700E2ACB9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C039543C268DF30700E2ACB9 /* AVA OSMTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AVA OSMTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C0395440268DF30700E2ACB9 /* AVA_OSMTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVA_OSMTests.swift; sourceTree = "<group>"; };
+		C0395442268DF30700E2ACB9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C0395447268DF30800E2ACB9 /* AVA OSMUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AVA OSMUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C039544B268DF30800E2ACB9 /* AVA_OSMUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVA_OSMUITests.swift; sourceTree = "<group>"; };
+		C039544D268DF30800E2ACB9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C0395423268DF30600E2ACB9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C0395439268DF30700E2ACB9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C0395444268DF30800E2ACB9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		C039541D268DF30600E2ACB9 = {
+			isa = PBXGroup;
+			children = (
+				C0395428268DF30600E2ACB9 /* AVA OSM */,
+				C039543F268DF30700E2ACB9 /* AVA OSMTests */,
+				C039544A268DF30800E2ACB9 /* AVA OSMUITests */,
+				C0395427268DF30600E2ACB9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C0395427268DF30600E2ACB9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C0395426268DF30600E2ACB9 /* AVA OSM.app */,
+				C039543C268DF30700E2ACB9 /* AVA OSMTests.xctest */,
+				C0395447268DF30800E2ACB9 /* AVA OSMUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C0395428268DF30600E2ACB9 /* AVA OSM */ = {
+			isa = PBXGroup;
+			children = (
+				C0395429268DF30600E2ACB9 /* AppDelegate.swift */,
+				C039542B268DF30600E2ACB9 /* SceneDelegate.swift */,
+				C039542D268DF30600E2ACB9 /* ViewController.swift */,
+				C039542F268DF30600E2ACB9 /* Main.storyboard */,
+				C0395432268DF30700E2ACB9 /* Assets.xcassets */,
+				C0395434268DF30700E2ACB9 /* LaunchScreen.storyboard */,
+				C0395437268DF30700E2ACB9 /* Info.plist */,
+			);
+			path = "AVA OSM";
+			sourceTree = "<group>";
+		};
+		C039543F268DF30700E2ACB9 /* AVA OSMTests */ = {
+			isa = PBXGroup;
+			children = (
+				C0395440268DF30700E2ACB9 /* AVA_OSMTests.swift */,
+				C0395442268DF30700E2ACB9 /* Info.plist */,
+			);
+			path = "AVA OSMTests";
+			sourceTree = "<group>";
+		};
+		C039544A268DF30800E2ACB9 /* AVA OSMUITests */ = {
+			isa = PBXGroup;
+			children = (
+				C039544B268DF30800E2ACB9 /* AVA_OSMUITests.swift */,
+				C039544D268DF30800E2ACB9 /* Info.plist */,
+			);
+			path = "AVA OSMUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		C0395425268DF30600E2ACB9 /* AVA OSM */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C0395450268DF30800E2ACB9 /* Build configuration list for PBXNativeTarget "AVA OSM" */;
+			buildPhases = (
+				C0395422268DF30600E2ACB9 /* Sources */,
+				C0395423268DF30600E2ACB9 /* Frameworks */,
+				C0395424268DF30600E2ACB9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "AVA OSM";
+			productName = "AVA OSM";
+			productReference = C0395426268DF30600E2ACB9 /* AVA OSM.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C039543B268DF30700E2ACB9 /* AVA OSMTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C0395453268DF30800E2ACB9 /* Build configuration list for PBXNativeTarget "AVA OSMTests" */;
+			buildPhases = (
+				C0395438268DF30700E2ACB9 /* Sources */,
+				C0395439268DF30700E2ACB9 /* Frameworks */,
+				C039543A268DF30700E2ACB9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C039543E268DF30700E2ACB9 /* PBXTargetDependency */,
+			);
+			name = "AVA OSMTests";
+			productName = "AVA OSMTests";
+			productReference = C039543C268DF30700E2ACB9 /* AVA OSMTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C0395446268DF30800E2ACB9 /* AVA OSMUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C0395456268DF30800E2ACB9 /* Build configuration list for PBXNativeTarget "AVA OSMUITests" */;
+			buildPhases = (
+				C0395443268DF30800E2ACB9 /* Sources */,
+				C0395444268DF30800E2ACB9 /* Frameworks */,
+				C0395445268DF30800E2ACB9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C0395449268DF30800E2ACB9 /* PBXTargetDependency */,
+			);
+			name = "AVA OSMUITests";
+			productName = "AVA OSMUITests";
+			productReference = C0395447268DF30800E2ACB9 /* AVA OSMUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C039541E268DF30600E2ACB9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1250;
+				LastUpgradeCheck = 1250;
+				TargetAttributes = {
+					C0395425268DF30600E2ACB9 = {
+						CreatedOnToolsVersion = 12.5;
+					};
+					C039543B268DF30700E2ACB9 = {
+						CreatedOnToolsVersion = 12.5;
+						TestTargetID = C0395425268DF30600E2ACB9;
+					};
+					C0395446268DF30800E2ACB9 = {
+						CreatedOnToolsVersion = 12.5;
+						TestTargetID = C0395425268DF30600E2ACB9;
+					};
+				};
+			};
+			buildConfigurationList = C0395421268DF30600E2ACB9 /* Build configuration list for PBXProject "AVA OSM" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = C039541D268DF30600E2ACB9;
+			productRefGroup = C0395427268DF30600E2ACB9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C0395425268DF30600E2ACB9 /* AVA OSM */,
+				C039543B268DF30700E2ACB9 /* AVA OSMTests */,
+				C0395446268DF30800E2ACB9 /* AVA OSMUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C0395424268DF30600E2ACB9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0395436268DF30700E2ACB9 /* LaunchScreen.storyboard in Resources */,
+				C0395433268DF30700E2ACB9 /* Assets.xcassets in Resources */,
+				C0395431268DF30600E2ACB9 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C039543A268DF30700E2ACB9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C0395445268DF30800E2ACB9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		C0395422268DF30600E2ACB9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C039542E268DF30600E2ACB9 /* ViewController.swift in Sources */,
+				C039542A268DF30600E2ACB9 /* AppDelegate.swift in Sources */,
+				C039542C268DF30600E2ACB9 /* SceneDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C0395438268DF30700E2ACB9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0395441268DF30700E2ACB9 /* AVA_OSMTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C0395443268DF30800E2ACB9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C039544C268DF30800E2ACB9 /* AVA_OSMUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C039543E268DF30700E2ACB9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C0395425268DF30600E2ACB9 /* AVA OSM */;
+			targetProxy = C039543D268DF30700E2ACB9 /* PBXContainerItemProxy */;
+		};
+		C0395449268DF30800E2ACB9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C0395425268DF30600E2ACB9 /* AVA OSM */;
+			targetProxy = C0395448268DF30800E2ACB9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		C039542F268DF30600E2ACB9 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				C0395430268DF30600E2ACB9 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		C0395434268DF30700E2ACB9 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				C0395435268DF30700E2ACB9 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		C039544E268DF30800E2ACB9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		C039544F268DF30800E2ACB9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C0395451268DF30800E2ACB9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KYXHZ9TT44;
+				INFOPLIST_FILE = "AVA OSM/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "cvg.AVA-OSM";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C0395452268DF30800E2ACB9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KYXHZ9TT44;
+				INFOPLIST_FILE = "AVA OSM/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "cvg.AVA-OSM";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C0395454268DF30800E2ACB9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KYXHZ9TT44;
+				INFOPLIST_FILE = "AVA OSMTests/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "cvg.AVA-OSMTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AVA OSM.app/AVA OSM";
+			};
+			name = Debug;
+		};
+		C0395455268DF30800E2ACB9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KYXHZ9TT44;
+				INFOPLIST_FILE = "AVA OSMTests/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "cvg.AVA-OSMTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AVA OSM.app/AVA OSM";
+			};
+			name = Release;
+		};
+		C0395457268DF30800E2ACB9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KYXHZ9TT44;
+				INFOPLIST_FILE = "AVA OSMUITests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "cvg.AVA-OSMUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "AVA OSM";
+			};
+			name = Debug;
+		};
+		C0395458268DF30800E2ACB9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = KYXHZ9TT44;
+				INFOPLIST_FILE = "AVA OSMUITests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "cvg.AVA-OSMUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "AVA OSM";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C0395421268DF30600E2ACB9 /* Build configuration list for PBXProject "AVA OSM" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C039544E268DF30800E2ACB9 /* Debug */,
+				C039544F268DF30800E2ACB9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C0395450268DF30800E2ACB9 /* Build configuration list for PBXNativeTarget "AVA OSM" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0395451268DF30800E2ACB9 /* Debug */,
+				C0395452268DF30800E2ACB9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C0395453268DF30800E2ACB9 /* Build configuration list for PBXNativeTarget "AVA OSMTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0395454268DF30800E2ACB9 /* Debug */,
+				C0395455268DF30800E2ACB9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C0395456268DF30800E2ACB9 /* Build configuration list for PBXNativeTarget "AVA OSMUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0395457268DF30800E2ACB9 /* Debug */,
+				C0395458268DF30800E2ACB9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C039541E268DF30600E2ACB9 /* Project object */;
+}
