@@ -99,6 +99,8 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
         if (CLLocationManager.locationServicesEnabled()) {
             locationManager.delegate = self
             locationManager.desiredAccuracy = kCLLocationAccuracyBest
+            locationManager.headingFilter = 5.0
+            locationManager.distanceFilter = 1.0
             locationManager.startUpdatingLocation()
             // simulator doesn't support heading data
             if (CLLocationManager.headingAvailable()) {
