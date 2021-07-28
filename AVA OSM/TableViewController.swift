@@ -89,6 +89,7 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
     var poisToDist : [Int : Double] = [:]
     var poisToHead : [Int : Double] = [:]
     var names : [Dictionary<Int, String>.Element] = [] //Array has order, dictionaries do NOT
+    var updatingNames = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -248,7 +249,7 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
                 
                 // Reload table on the main thread
                 DispatchQueue.main.async {
-                    self.tableView.reloadData()
+                    self.updateNames()
                 }
             } catch let err {
                 print("Err ", err)
@@ -276,8 +277,11 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
         return result * 180.0 / Double.pi
     }
     
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        //var prev = CFAbsoluteTimeGetCurrent()
+    func updateNames() {
+        if (updatingNames == true) {
+            return
+        }
+        updatingNames = true
         for key in poisToDist.keys {
             if let location = nodesToLoc[key] {
                 if let distance = locationManager.location?.distance(from: location) {
@@ -309,27 +313,18 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
                 }
             }
         }
-//
-//        var next = CFAbsoluteTimeGetCurrent()
-//        print("1: ", next - prev)
-//        prev = CFAbsoluteTimeGetCurrent()
-//
-//        names = poisToName.sorted(by: { poisToDist[$0.key]! < poisToDist[$1.key]! })
-//
-//        next = CFAbsoluteTimeGetCurrent()
-//        print("2: ", next - prev)
-//        prev = CFAbsoluteTimeGetCurrent()
-//
-//        tableView.reloadData()
-//
-//        next = CFAbsoluteTimeGetCurrent()
-//        print("3: ", next - prev)
-//        prev = CFAbsoluteTimeGetCurrent()
+        
+        names = poisToName.sorted(by: { poisToDist[$0.key]! < poisToDist[$1.key]! })
+        tableView.reloadData()
+        updatingNames = false
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        updateNames()
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
-        //print(self.locationManager.heading!.magneticHeading)
-        //print(self.locationManager.heading!.trueHeading)
+        updateNames()
     }
 
     // MARK: - Table view data source
