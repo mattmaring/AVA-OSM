@@ -9,12 +9,17 @@
 /* Begin PBXBuildFile section */
 		C039542A268DF30600E2ACB9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0395429268DF30600E2ACB9 /* AppDelegate.swift */; };
 		C039542C268DF30600E2ACB9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039542B268DF30600E2ACB9 /* SceneDelegate.swift */; };
-		C039542E268DF30600E2ACB9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039542D268DF30600E2ACB9 /* ViewController.swift */; };
 		C0395431268DF30600E2ACB9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C039542F268DF30600E2ACB9 /* Main.storyboard */; };
 		C0395433268DF30700E2ACB9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C0395432268DF30700E2ACB9 /* Assets.xcassets */; };
 		C0395436268DF30700E2ACB9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C0395434268DF30700E2ACB9 /* LaunchScreen.storyboard */; };
 		C0395441268DF30700E2ACB9 /* AVA_OSMTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0395440268DF30700E2ACB9 /* AVA_OSMTests.swift */; };
 		C039544C268DF30800E2ACB9 /* AVA_OSMUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039544B268DF30800E2ACB9 /* AVA_OSMUITests.swift */; };
+		C054C43B269DAFA600BD0DB8 /* TableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */; };
+		C098B73D269CB0CF0024D77F /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73C269CB0CF0024D77F /* MapViewController.swift */; };
+		C098B73F269CB8880024D77F /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73E269CB8880024D77F /* TableViewController.swift */; };
+		C0EF9D4726A745F9009CF3E8 /* NearbyInteraction.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */; };
+		C0EF9D4926A74604009CF3E8 /* MultipeerConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0EF9D4826A74604009CF3E8 /* MultipeerConnectivity.framework */; };
+		C0EF9D4B26A74639009CF3E8 /* TrackerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0EF9D4A26A74639009CF3E8 /* TrackerViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,7 +43,6 @@
 		C0395426268DF30600E2ACB9 /* AVA OSM.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AVA OSM.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0395429268DF30600E2ACB9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C039542B268DF30600E2ACB9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		C039542D268DF30600E2ACB9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		C0395430268DF30600E2ACB9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		C0395432268DF30700E2ACB9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C0395435268DF30700E2ACB9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -49,6 +53,12 @@
 		C0395447268DF30800E2ACB9 /* AVA OSMUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AVA OSMUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C039544B268DF30800E2ACB9 /* AVA_OSMUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVA_OSMUITests.swift; sourceTree = "<group>"; };
 		C039544D268DF30800E2ACB9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewCell.swift; sourceTree = "<group>"; };
+		C098B73C269CB0CF0024D77F /* MapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
+		C098B73E269CB8880024D77F /* TableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewController.swift; sourceTree = "<group>"; };
+		C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NearbyInteraction.framework; path = System/Library/Frameworks/NearbyInteraction.framework; sourceTree = SDKROOT; };
+		C0EF9D4826A74604009CF3E8 /* MultipeerConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MultipeerConnectivity.framework; path = System/Library/Frameworks/MultipeerConnectivity.framework; sourceTree = SDKROOT; };
+		C0EF9D4A26A74639009CF3E8 /* TrackerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +66,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0EF9D4726A745F9009CF3E8 /* NearbyInteraction.framework in Frameworks */,
+				C0EF9D4926A74604009CF3E8 /* MultipeerConnectivity.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,6 +95,7 @@
 				C039543F268DF30700E2ACB9 /* AVA OSMTests */,
 				C039544A268DF30800E2ACB9 /* AVA OSMUITests */,
 				C0395427268DF30600E2ACB9 /* Products */,
+				C0EF9D4526A745F9009CF3E8 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -101,8 +114,11 @@
 			children = (
 				C0395429268DF30600E2ACB9 /* AppDelegate.swift */,
 				C039542B268DF30600E2ACB9 /* SceneDelegate.swift */,
-				C039542D268DF30600E2ACB9 /* ViewController.swift */,
+				C098B73C269CB0CF0024D77F /* MapViewController.swift */,
+				C098B73E269CB8880024D77F /* TableViewController.swift */,
+				C0EF9D4A26A74639009CF3E8 /* TrackerViewController.swift */,
 				C039542F268DF30600E2ACB9 /* Main.storyboard */,
+				C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */,
 				C0395432268DF30700E2ACB9 /* Assets.xcassets */,
 				C0395434268DF30700E2ACB9 /* LaunchScreen.storyboard */,
 				C0395437268DF30700E2ACB9 /* Info.plist */,
@@ -126,6 +142,15 @@
 				C039544D268DF30800E2ACB9 /* Info.plist */,
 			);
 			path = "AVA OSMUITests";
+			sourceTree = "<group>";
+		};
+		C0EF9D4526A745F9009CF3E8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C0EF9D4826A74604009CF3E8 /* MultipeerConnectivity.framework */,
+				C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -258,9 +283,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C039542E268DF30600E2ACB9 /* ViewController.swift in Sources */,
 				C039542A268DF30600E2ACB9 /* AppDelegate.swift in Sources */,
 				C039542C268DF30600E2ACB9 /* SceneDelegate.swift in Sources */,
+				C054C43B269DAFA600BD0DB8 /* TableViewCell.swift in Sources */,
+				C0EF9D4B26A74639009CF3E8 /* TrackerViewController.swift in Sources */,
+				C098B73F269CB8880024D77F /* TableViewController.swift in Sources */,
+				C098B73D269CB0CF0024D77F /* MapViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
