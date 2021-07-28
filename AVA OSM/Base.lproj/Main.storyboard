@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19142.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="Jq8-cg-gN7">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="AcN-G1-EMa">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
-        <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19129"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -18,14 +17,14 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" mapType="standard" showsUserLocation="YES" showsScale="YES" translatesAutoresizingMaskIntoConstraints="NO" id="RUG-LU-0yw">
-                                <rect key="frame" x="0.0" y="88" width="414" height="725"/>
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="813"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </mapView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="JyO-tU-3Oa"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Map" id="Ig2-ix-mXb" userLabel="Map"/>
+                    <tabBarItem key="tabBarItem" title="Map" image="map" catalog="system" selectedImage="map" id="Ig2-ix-mXb" userLabel="Map"/>
                     <connections>
                         <outlet property="mapView" destination="RUG-LU-0yw" id="2qR-n8-lkI"/>
                     </connections>
@@ -35,23 +34,22 @@
             <point key="canvasLocation" x="2528.985507246377" y="-80.357142857142847"/>
         </scene>
         <!--Tab Bar Controller-->
-        <scene sceneID="Usk-0F-ZIE">
+        <scene sceneID="5qd-e2-cfq">
             <objects>
-                <tabBarController id="Jq8-cg-gN7" sceneMemberID="viewController">
-                    <navigationItem key="navigationItem" id="2YT-gr-nOG"/>
-                    <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="Xa0-9y-xFe">
+                <tabBarController id="AcN-G1-EMa" sceneMemberID="viewController">
+                    <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="hKx-1K-FFB">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     </tabBar>
                     <connections>
-                        <segue destination="8qu-mc-AE9" kind="relationship" relationship="viewControllers" id="aBJ-dW-x74"/>
-                        <segue destination="hZa-68-3yD" kind="relationship" relationship="viewControllers" id="hiJ-jN-i0q"/>
+                        <segue destination="8qu-mc-AE9" kind="relationship" relationship="viewControllers" id="qcJ-Z6-N32"/>
+                        <segue destination="hZa-68-3yD" kind="relationship" relationship="viewControllers" id="4jL-d1-zfJ"/>
                     </connections>
                 </tabBarController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="c95-vT-MRr" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Jhm-Xn-F8q" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1639" y="222"/>
+            <point key="canvasLocation" x="1687" y="260"/>
         </scene>
         <!--Points of Interest-->
         <scene sceneID="C56-Cq-USr">
@@ -63,7 +61,7 @@
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="POICell" rowHeight="75" id="Kcg-OL-yob" customClass="TableViewCell" customModule="AVA_OSM" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="50" width="414" height="75"/>
+                                <rect key="frame" x="0.0" y="24.5" width="414" height="75"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Kcg-OL-yob" id="htd-BZ-eMf">
                                     <rect key="frame" x="0.0" y="0.0" width="414" height="75"/>
@@ -134,11 +132,14 @@
                             </tableViewCell>
                         </prototypes>
                         <connections>
-                            <outlet property="dataSource" destination="hZa-68-3yD" id="dvt-eq-ESE"/>
-                            <outlet property="delegate" destination="hZa-68-3yD" id="h9a-gC-Y54"/>
+                            <outlet property="dataSource" destination="hZa-68-3yD" id="ARM-PW-uEI"/>
+                            <outlet property="delegate" destination="hZa-68-3yD" id="EY5-Nk-2Wm"/>
                         </connections>
                     </tableView>
-                    <tabBarItem key="tabBarItem" title="Points of Interest" id="eTL-cX-wd9" userLabel="Points of Interest"/>
+                    <tabBarItem key="tabBarItem" title="Points of Interest" image="mappin.and.ellipse" catalog="system" selectedImage="mappin.and.ellipse" id="eTL-cX-wd9" userLabel="Points of Interest"/>
+                    <connections>
+                        <outlet property="view" destination="Pjc-ZJ-ad3" id="zWj-m9-Gtd"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="GhR-XM-i6X" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -146,6 +147,8 @@
         </scene>
     </scenes>
     <resources>
+        <image name="map" catalog="system" width="128" height="110"/>
+        <image name="mappin.and.ellipse" catalog="system" width="118" height="128"/>
         <systemColor name="secondaryLabelColor">
             <color red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
