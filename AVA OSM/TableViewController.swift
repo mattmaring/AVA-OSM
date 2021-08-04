@@ -299,37 +299,45 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
                 }
             } else {
                 poisToDist[key] = DIST_MAX
-                var minimum1 = DIST_MAX // ac
-                var location1 = CLLocation(latitude: 0.0, longitude: 0.0) // a
-                var minimum2 = DIST_MAX // bc
-                var location2 = CLLocation(latitude: 0.0, longitude: 0.0) // b
+//                var minimum1 = DIST_MAX // ac
+//                var location1 = CLLocation(latitude: 0.0, longitude: 0.0) // a
+//                var minimum2 = DIST_MAX // bc
+//                var location2 = CLLocation(latitude: 0.0, longitude: 0.0) // b
                 for node in poisToNodes[key] ?? [] {
                     if let location = nodesToLoc[node] {
                         if let distance = locationManager.location?.distance(from: location) {
-                            if distance < minimum1 {
-                                minimum2 = minimum1
-                                location2 = location1
-                                minimum1 = distance
-                                location1 = location
-                            } else if distance < minimum2 {
-                                minimum2 = distance
-                                location2 = location
+                            if distance < poisToDist[key] ?? DIST_MAX {
+                                poisToDist[key] = distance
+                                if let coordinate = locationManager.location?.coordinate {
+                                    poisToHead[key] = haversine(from: location.coordinate, to: coordinate)
+                                } else {
+                                    poisToHead[key] = DIR_MAX
+                                }
                             }
+//                            if distance < minimum1 {
+//                                minimum2 = minimum1
+//                                location2 = location1
+//                                minimum1 = distance
+//                                location1 = location
+//                            } else if distance < minimum2 {
+//                                minimum2 = distance
+//                                location2 = location
+//                            }
                         }
                     }
                 }
-                let minimum3 = location1.distance(from: location2) // ab
-                if minimum3 == 0.0 {
-                    poisToDist[key] = minimum2
-                } else {
-                    let theta = acos((pow(minimum3, 2) + pow(minimum2, 2) - pow(minimum1, 2)) / (2 * minimum2 * minimum3))
-                    poisToDist[key] = abs(sin(theta * 180.0 / Double.pi) * minimum2)
-                }
-                if let coordinate = locationManager.location?.coordinate {
-                    poisToHead[key] = haversine(from: location2.coordinate, to: coordinate)
-                } else {
-                    poisToHead[key] = DIR_MAX
-                }
+//                let minimum3 = location1.distance(from: location2) // ab
+//                if minimum3 == 0.0 {
+//                    poisToDist[key] = minimum2
+//                } else {
+//                    let theta = acos((pow(minimum3, 2) + pow(minimum2, 2) - pow(minimum1, 2)) / (2 * minimum2 * minimum3))
+//                    poisToDist[key] = abs(sin(theta * 180.0 / Double.pi) * minimum2)
+//                }
+//                if let coordinate = locationManager.location?.coordinate {
+//                    poisToHead[key] = haversine(from: location2.coordinate, to: coordinate)
+//                } else {
+//                    poisToHead[key] = DIR_MAX
+//                }
             }
         }
         
