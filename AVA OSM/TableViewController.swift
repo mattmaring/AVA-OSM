@@ -81,6 +81,11 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
     let DIST_MAX = 999999.0
     let DIR_MAX = 999.0
     
+    // Car location
+    let destination = CLLocation(latitude: 44.563138, longitude: -69.661305) // Example location of vehicle in Eustis Parking Lot
+    var car_distance = 999999.0
+    var car_direction = 999.0
+    
     // Store JSON data for quick retrieval/sorting
     var nodesToLoc : [Int : CLLocation] = [:]
     var poisToName : [Int : String] = [:]
@@ -284,6 +289,17 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
             return
         }
         updatingNames = true
+        if let distance = locationManager.location?.distance(from: destination) {
+            car_distance = distance
+            if let coordinate = locationManager.location?.coordinate {
+                car_direction = haversine(from: destination.coordinate, to: coordinate)
+            } else {
+                car_direction = DIR_MAX
+            }
+        } else {
+            car_distance = DIST_MAX
+            car_direction = DIR_MAX
+        }
         for key in poisToDist.keys {
             if let location = nodesToLoc[key] {
                 if let distance = locationManager.location?.distance(from: location) {
@@ -361,8 +377,8 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if names.count > 10 {
-            return 10
+        if names.count > 9 {
+            return 9
         } else {
             return names.count
         }
@@ -370,23 +386,25 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "POICell", for: indexPath) as! TableViewCell
-        let connect = names[indexPath.row]
         
-        if let distance = poisToDist[connect.key] {
+        if indexPath.row == 0 {
             cell.isHidden = false
+            cell.backgroundColor = UIColor.green
+            cell.overrideUserInterfaceStyle = UIUserInterfaceStyle.light
             
-            cell.tagType.text = poisToType[connect.key]
-            cell.descriptiveName.text = connect.value
+            cell.descriptiveName.text = "Your Ride"
+            cell.tagType.text = "Destination"
             
-            if units == Units.imperial && distance < DIST_MAX {
-                cell.distance.text = "\(Int(distance * 3.28083)) ft"
-            } else if units == Units.metric && distance < DIST_MAX {
-                cell.distance.text = "\(Int(distance)) m"
+            if units == Units.imperial && car_distance < DIST_MAX {
+                cell.distance.text = "\(Int(car_distance * 3.28083)) ft"
+            } else if units == Units.metric && car_distance < DIST_MAX {
+                cell.distance.text = "\(Int(car_distance)) m"
             } else {
                 cell.distance.text = "---"
             }
             
-            if complexity != Complexity.concise, let heading = poisToHead[connect.key] {
+            let heading = car_direction
+            if complexity != Complexity.concise {
                 if let direction = locationManager.heading?.trueHeading {
                     if heading < 0.0 {
                         let result = heading + 180.0 - direction
@@ -427,10 +445,71 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
             } else {
                 cell.direction.text = "---º"
             }
+            
+            return cell
         } else {
-            cell.isHidden = true
+            let connect = names[indexPath.row - 1]
+            
+            if let distance = poisToDist[connect.key] {
+                cell.isHidden = false
+                
+                cell.tagType.text = poisToType[connect.key]
+                cell.descriptiveName.text = connect.value
+                
+                if units == Units.imperial && distance < DIST_MAX {
+                    cell.distance.text = "\(Int(distance * 3.28083)) ft"
+                } else if units == Units.metric && distance < DIST_MAX {
+                    cell.distance.text = "\(Int(distance)) m"
+                } else {
+                    cell.distance.text = "---"
+                }
+                
+                if complexity != Complexity.concise, let heading = poisToHead[connect.key] {
+                    if let direction = locationManager.heading?.trueHeading {
+                        if heading < 0.0 {
+                            let result = heading + 180.0 - direction
+                            if result < -180.0 {
+                                if complexity == Complexity.verbose {
+                                    cell.direction.text = "\(Int(360.0 + result))º"
+                                } else {
+                                    cell.direction.text = directionNaturalLanguage(degrees: 360.0 + result)
+                                }
+                            } else {
+                                if complexity == Complexity.verbose {
+                                    cell.direction.text = "\(Int(result))º"
+                                } else {
+                                    cell.direction.text = directionNaturalLanguage(degrees: result)
+                                }
+                            }
+                        } else if heading != DIR_MAX {
+                            let result = heading - 180.0 - direction
+                            if result < -180.0 {
+                                if complexity == Complexity.verbose {
+                                    cell.direction.text = "\(Int(360.0 + result))º"
+                                } else {
+                                    cell.direction.text = directionNaturalLanguage(degrees: 360.0 + result)
+                                }
+                            } else {
+                                if complexity == Complexity.verbose {
+                                    cell.direction.text = "\(Int(result))º"
+                                } else {
+                                    cell.direction.text = directionNaturalLanguage(degrees: result)
+                                }
+                            }
+                        } else {
+                            cell.direction.text = "---º"
+                        }
+                    } else {
+                        cell.direction.text = "---º"
+                    }
+                } else {
+                    cell.direction.text = "---º"
+                }
+            } else {
+                cell.isHidden = true
+            }
+            return cell
         }
-        return cell
     }
     
     // Override to support conditional editing of the table view.
