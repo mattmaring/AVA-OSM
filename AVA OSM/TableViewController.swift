@@ -369,6 +369,10 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
         updateNames()
     }
+    
+    func roundFeet(distance: Double) -> Int {
+        return Int(distance / 10) * 10
+    }
 
     // MARK: - Table view data source
 
@@ -396,7 +400,7 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
             cell.tagType.text = "Destination"
             
             if units == Units.imperial && car_distance < DIST_MAX {
-                cell.distance.text = "\(Int(car_distance * 3.28083)) ft"
+                cell.distance.text = "\(roundFeet(distance: car_distance * 3.28083)) ft"
             } else if units == Units.metric && car_distance < DIST_MAX {
                 cell.distance.text = "\(Int(car_distance)) m"
             } else {
@@ -457,7 +461,7 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
                 cell.descriptiveName.text = connect.value
                 
                 if units == Units.imperial && distance < DIST_MAX {
-                    cell.distance.text = "\(Int(distance * 3.28083)) ft"
+                    cell.distance.text = "\(roundFeet(distance: distance * 3.28083)) ft"
                 } else if units == Units.metric && distance < DIST_MAX {
                     cell.distance.text = "\(Int(distance)) m"
                 } else {
