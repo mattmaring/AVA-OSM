@@ -456,6 +456,8 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
             
             if let distance = poisToDist[connect.key] {
                 cell.isHidden = false
+                cell.backgroundColor = UIColor.systemBackground
+                cell.overrideUserInterfaceStyle = UIUserInterfaceStyle.unspecified
                 
                 cell.tagType.text = poisToType[connect.key]
                 cell.descriptiveName.text = connect.value
