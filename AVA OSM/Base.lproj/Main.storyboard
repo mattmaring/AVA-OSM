@@ -4,6 +4,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19144"/>
+        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -30,7 +31,9 @@
                             <constraint firstItem="RUG-LU-0yw" firstAttribute="bottom" secondItem="JyO-tU-3Oa" secondAttribute="bottom" id="bMS-rI-mEA"/>
                         </constraints>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Map" image="map" catalog="system" selectedImage="map" id="Ig2-ix-mXb" userLabel="Map"/>
+                    <tabBarItem key="tabBarItem" title="Map" image="map" catalog="system" id="Ig2-ix-mXb" userLabel="Map">
+                        <imageReference key="selectedImage" image="map" catalog="system" symbolScale="large"/>
+                    </tabBarItem>
                     <connections>
                         <outlet property="mapView" destination="RUG-LU-0yw" id="2qR-n8-lkI"/>
                     </connections>
@@ -79,7 +82,7 @@
                                             <constraints>
                                                 <constraint firstAttribute="width" secondItem="PZO-jt-fGW" secondAttribute="height" multiplier="266:25" id="gph-Na-Riv"/>
                                             </constraints>
-                                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                            <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="17"/>
                                             <color key="textColor" systemColor="secondaryLabelColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
@@ -88,7 +91,7 @@
                                             <constraints>
                                                 <constraint firstAttribute="width" secondItem="P3p-v3-u7n" secondAttribute="height" multiplier="4:1" id="z0l-Vs-HW4"/>
                                             </constraints>
-                                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                            <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
                                             <color key="textColor" systemColor="tertiaryLabelColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
@@ -97,7 +100,7 @@
                                             <constraints>
                                                 <constraint firstAttribute="width" secondItem="PBx-8V-d3F" secondAttribute="height" multiplier="4:1" id="EMy-Ao-Oht"/>
                                             </constraints>
-                                            <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                            <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
                                             <color key="textColor" systemColor="tertiaryLabelColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
@@ -106,7 +109,7 @@
                                             <constraints>
                                                 <constraint firstAttribute="width" secondItem="Fgd-gy-K14" secondAttribute="height" multiplier="266:25" id="Kv7-AA-hTf"/>
                                             </constraints>
-                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                                             <nil key="highlightedColor"/>
                                         </label>
                                     </subviews>
@@ -143,7 +146,9 @@
                             <outlet property="delegate" destination="hZa-68-3yD" id="EY5-Nk-2Wm"/>
                         </connections>
                     </tableView>
-                    <tabBarItem key="tabBarItem" title="Points of Interest" image="mappin.and.ellipse" catalog="system" selectedImage="mappin.and.ellipse" id="eTL-cX-wd9" userLabel="Points of Interest"/>
+                    <tabBarItem key="tabBarItem" title="Points of Interest" image="mappin.and.ellipse" catalog="system" id="eTL-cX-wd9" userLabel="Points of Interest">
+                        <imageReference key="selectedImage" image="mappin.and.ellipse" catalog="system" symbolScale="large"/>
+                    </tabBarItem>
                     <connections>
                         <outlet property="view" destination="Pjc-ZJ-ad3" id="zWj-m9-Gtd"/>
                     </connections>
@@ -161,51 +166,51 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Finding" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fqK-wD-1kZ" userLabel="Title Detail">
-                                <rect key="frame" x="20" y="60" width="374" height="21"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <rect key="frame" x="20" y="60" width="374" height="36"/>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="30"/>
                                 <color key="textColor" systemColor="secondaryLabelColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Your Ride" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="17j-0l-9Tv" userLabel="Title Destination">
-                                <rect key="frame" x="20" y="89" width="374" height="48"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="40"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Dy8-6L-KTt" userLabel="Direction Description">
-                                <rect key="frame" x="20" y="631" width="374" height="95.5"/>
-                                <string key="text">20 ft
-straight ahead</string>
-                                <fontDescription key="fontDescription" type="system" pointSize="40"/>
+                                <rect key="frame" x="20" y="104" width="374" height="60"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="50"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="xmark.circle.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="CgR-BD-Aqs">
-                                <rect key="frame" x="20" y="742.5" width="50" height="50"/>
+                                <rect key="frame" x="20" y="717.5" width="75" height="75"/>
                                 <color key="tintColor" systemColor="secondaryLabelColor"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="50" id="0zD-lS-0qe"/>
-                                    <constraint firstAttribute="height" constant="51" id="2KC-5A-ZRD"/>
+                                    <constraint firstAttribute="width" constant="75" id="0zD-lS-0qe"/>
+                                    <constraint firstAttribute="height" constant="76" id="2KC-5A-ZRD"/>
                                 </constraints>
                             </imageView>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="car.circle.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="Cx6-g3-se4">
-                                <rect key="frame" x="344" y="742.5" width="50" height="50"/>
+                                <rect key="frame" x="319" y="717.5" width="75" height="75"/>
                                 <color key="tintColor" systemColor="secondaryLabelColor"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="51" id="UdM-h7-dgA"/>
-                                    <constraint firstAttribute="width" constant="50" id="jxR-0x-WTM"/>
+                                    <constraint firstAttribute="height" constant="76" id="UdM-h7-dgA"/>
+                                    <constraint firstAttribute="width" constant="75" id="jxR-0x-WTM"/>
                                 </constraints>
                             </imageView>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" image="arrow.up" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="Z9y-et-QOq">
-                                <rect key="frame" x="20" y="197" width="374" height="374"/>
-                                <color key="tintColor" systemColor="secondaryLabelColor"/>
+                                <rect key="frame" x="20" y="185" width="374" height="380"/>
+                                <color key="tintColor" systemColor="labelColor"/>
                             </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Dy8-6L-KTt" userLabel="Direction Description">
+                                <rect key="frame" x="20" y="586" width="374" height="119.5"/>
+                                <string key="text">20 ft
+straight ahead</string>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="50"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="LFP-KE-iii"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="LFP-KE-iii" firstAttribute="trailing" secondItem="Z9y-et-QOq" secondAttribute="trailing" constant="20" id="1ro-eX-HjA"/>
-                            <constraint firstItem="Z9y-et-QOq" firstAttribute="top" secondItem="17j-0l-9Tv" secondAttribute="bottom" constant="59" id="3JT-nj-5u3"/>
+                            <constraint firstItem="Z9y-et-QOq" firstAttribute="top" secondItem="17j-0l-9Tv" secondAttribute="bottom" constant="20" id="3JT-nj-5u3"/>
                             <constraint firstItem="fqK-wD-1kZ" firstAttribute="top" secondItem="LFP-KE-iii" secondAttribute="top" constant="16" id="582-oF-SvI"/>
-                            <constraint firstItem="CgR-BD-Aqs" firstAttribute="top" secondItem="Dy8-6L-KTt" secondAttribute="bottom" constant="15.5" id="5CW-lZ-Uif"/>
+                            <constraint firstItem="CgR-BD-Aqs" firstAttribute="top" secondItem="Dy8-6L-KTt" secondAttribute="bottom" constant="11.5" id="5CW-lZ-Uif"/>
                             <constraint firstItem="Dy8-6L-KTt" firstAttribute="leading" secondItem="LFP-KE-iii" secondAttribute="leading" constant="20" id="9qr-VF-qcQ"/>
                             <constraint firstItem="LFP-KE-iii" firstAttribute="bottom" secondItem="CgR-BD-Aqs" secondAttribute="bottom" constant="20" id="Cdd-e0-n1T"/>
                             <constraint firstItem="CgR-BD-Aqs" firstAttribute="leading" secondItem="LFP-KE-iii" secondAttribute="leading" constant="20" id="Fx1-9F-7Pd"/>
@@ -216,12 +221,14 @@ straight ahead</string>
                             <constraint firstItem="LFP-KE-iii" firstAttribute="trailing" secondItem="Cx6-g3-se4" secondAttribute="trailing" constant="20" id="bDa-Ln-N2N"/>
                             <constraint firstItem="LFP-KE-iii" firstAttribute="trailing" secondItem="fqK-wD-1kZ" secondAttribute="trailing" constant="20" id="gV8-KH-SAR"/>
                             <constraint firstItem="LFP-KE-iii" firstAttribute="trailing" secondItem="17j-0l-9Tv" secondAttribute="trailing" constant="20" id="nc5-e4-Xpa"/>
-                            <constraint firstItem="Dy8-6L-KTt" firstAttribute="top" secondItem="Z9y-et-QOq" secondAttribute="bottom" constant="59" id="qkm-GY-m15"/>
+                            <constraint firstItem="Dy8-6L-KTt" firstAttribute="top" secondItem="Z9y-et-QOq" secondAttribute="bottom" constant="20" id="qkm-GY-m15"/>
                             <constraint firstItem="Z9y-et-QOq" firstAttribute="leading" secondItem="LFP-KE-iii" secondAttribute="leading" constant="20" id="w2l-WS-waL"/>
                             <constraint firstItem="17j-0l-9Tv" firstAttribute="top" secondItem="fqK-wD-1kZ" secondAttribute="bottom" constant="8" id="zKf-uX-hck"/>
                         </constraints>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Tracker" image="dot.circle.viewfinder" catalog="system" selectedImage="dot.circle.viewfinder" id="xN5-2E-kK9"/>
+                    <tabBarItem key="tabBarItem" title="Tracker" image="dot.circle.viewfinder" catalog="system" id="xN5-2E-kK9">
+                        <imageReference key="selectedImage" image="dot.circle.viewfinder" catalog="system" symbolScale="large"/>
+                    </tabBarItem>
                     <connections>
                         <outlet property="directionDescriptionLabel" destination="Dy8-6L-KTt" id="GjW-AF-vvA"/>
                     </connections>
@@ -238,6 +245,9 @@ straight ahead</string>
         <image name="map" catalog="system" width="128" height="110"/>
         <image name="mappin.and.ellipse" catalog="system" width="118" height="128"/>
         <image name="xmark.circle.fill" catalog="system" width="128" height="121"/>
+        <systemColor name="labelColor">
+            <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
         <systemColor name="secondaryLabelColor">
             <color red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>

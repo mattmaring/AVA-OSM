@@ -15,8 +15,8 @@ class TrackerViewController: UIViewController, NISessionDelegate {
     @IBOutlet weak var directionDescriptionLabel: UILabel!
     
     // MARK: - Text formmatting
-    let attributes1 = [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 40), NSAttributedString.Key.foregroundColor : UIColor.label] //primary
-    let attributes2 = [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 40), NSAttributedString.Key.foregroundColor : UIColor.secondaryLabel] //secondary
+    let attributes1 = [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 50, weight: UIFont.Weight.bold), NSAttributedString.Key.foregroundColor : UIColor.label] //primary
+    let attributes2 = [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 50, weight: UIFont.Weight.semibold), NSAttributedString.Key.foregroundColor : UIColor.secondaryLabel] //secondary
     
     override func viewDidLoad() {
         super.viewDidLoad()
