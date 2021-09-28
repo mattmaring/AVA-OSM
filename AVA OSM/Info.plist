@@ -2,10 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>AVA uses location services to monitor your current location and provide navigation guidance</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>AVA uses location services to monitor your current location and provide navigation guidance</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -24,6 +20,20 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_avaosm._tcp</string>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>AVA uses the camera to detect your motion and improve positional data accuracy</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>AVA uses location services to monitor your current location and provide navigation guidance</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>AVA uses location services to monitor your current location and provide navigation guidance</string>
+	<key>NSNearbyInteractionAllowOnceUsageDescription</key>
+	<string>AVA OSM requires access to Nearby Interactions to provide accurate navigation to the vehicle</string>
+	<key>NSNearbyInteractionUsageDescription</key>
+	<string>AVA OSM requires access to Nearby Interactions to provide accurate navigation to the vehicle</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
