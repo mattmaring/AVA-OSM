@@ -234,6 +234,7 @@ straight ahead</string>
                         <imageReference key="selectedImage" image="dot.circle.viewfinder" catalog="system" symbolScale="large"/>
                     </tabBarItem>
                     <connections>
+                        <outlet property="arrowImage" destination="Z9y-et-QOq" id="mbV-5J-oQk"/>
                         <outlet property="directionDescriptionLabel" destination="Dy8-6L-KTt" id="GjW-AF-vvA"/>
                         <outlet property="sceneView" destination="P0A-uA-mAP" id="My8-Yi-dA2"/>
                     </connections>

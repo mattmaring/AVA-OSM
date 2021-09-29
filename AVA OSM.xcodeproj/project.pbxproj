@@ -17,6 +17,7 @@
 		C039544C268DF30800E2ACB9 /* AVA_OSMUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039544B268DF30800E2ACB9 /* AVA_OSMUITests.swift */; };
 		C054C43B269DAFA600BD0DB8 /* TableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */; };
 		C065539627029648001036AF /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C065539527029648001036AF /* ARKit.framework */; };
+		C065539827033EA7001036AF /* ARWorldAnchor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C065539727033EA7001036AF /* ARWorldAnchor.swift */; };
 		C098B73D269CB0CF0024D77F /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73C269CB0CF0024D77F /* MapViewController.swift */; };
 		C098B73F269CB8880024D77F /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73E269CB8880024D77F /* TableViewController.swift */; };
 		C0EF9D4726A745F9009CF3E8 /* NearbyInteraction.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */; };
@@ -58,6 +59,7 @@
 		C039544D268DF30800E2ACB9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewCell.swift; sourceTree = "<group>"; };
 		C065539527029648001036AF /* ARKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ARKit.framework; path = System/Library/Frameworks/ARKit.framework; sourceTree = SDKROOT; };
+		C065539727033EA7001036AF /* ARWorldAnchor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARWorldAnchor.swift; sourceTree = "<group>"; };
 		C098B73C269CB0CF0024D77F /* MapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
 		C098B73E269CB8880024D77F /* TableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewController.swift; sourceTree = "<group>"; };
 		C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NearbyInteraction.framework; path = System/Library/Frameworks/NearbyInteraction.framework; sourceTree = SDKROOT; };
@@ -122,6 +124,7 @@
 				C098B73C269CB0CF0024D77F /* MapViewController.swift */,
 				C098B73E269CB8880024D77F /* TableViewController.swift */,
 				C0EF9D4A26A74639009CF3E8 /* TrackerViewController.swift */,
+				C065539727033EA7001036AF /* ARWorldAnchor.swift */,
 				C0154E6D2700EAE9005B9727 /* MPCSession.swift */,
 				C039542F268DF30600E2ACB9 /* Main.storyboard */,
 				C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */,
@@ -294,6 +297,7 @@
 				C039542C268DF30600E2ACB9 /* SceneDelegate.swift in Sources */,
 				C054C43B269DAFA600BD0DB8 /* TableViewCell.swift in Sources */,
 				C0EF9D4B26A74639009CF3E8 /* TrackerViewController.swift in Sources */,
+				C065539827033EA7001036AF /* ARWorldAnchor.swift in Sources */,
 				C098B73F269CB8880024D77F /* TableViewController.swift in Sources */,
 				C098B73D269CB0CF0024D77F /* MapViewController.swift in Sources */,
 				C0154E6E2700EAE9005B9727 /* MPCSession.swift in Sources */,

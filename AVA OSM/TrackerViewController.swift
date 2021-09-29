@@ -9,6 +9,8 @@ import UIKit
 import NearbyInteraction
 import MultipeerConnectivity
 import ARKit
+import SceneKit
+import simd
 
 struct Distance {
     var distance: Float
@@ -16,15 +18,27 @@ struct Distance {
 }
 
 struct Direction {
-    var direction: Float
+    var direction: SIMD3<Float>
     var timestamp: Date
+}
+
+extension FloatingPoint {
+    // Converts degrees to radians.
+    var degreesToRadians: Self { self * .pi / 180 }
+    // Converts radians to degrees.
+    var radiansToDegrees: Self { self * 180 / .pi }
 }
 
 class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDelegate, ARSessionDelegate {
     
     // MARK: - `IBOutlet` instances
     @IBOutlet weak var directionDescriptionLabel: UILabel!
+    @IBOutlet weak var arrowImage: UIImageView!
     @IBOutlet weak var sceneView: ARSCNView!
+    
+    // MARK: - ARKit variables
+    var boxNode = SCNNode()
+    var currentCamera = SCNMatrix4()
     
     // MARK: - Class variables
     var session: NISession?
@@ -45,7 +59,12 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        addBox()
+        
         sceneView.session.delegate = self
+        
+        let doorHandle = ARWWorldAnchor(column3: [0, 0, 0, 1])
+        sceneView.session.add(anchor: ARAnchor(anchor: doorHandle))
         
         // Initialize visualizations
         let attributedString1 = NSMutableAttributedString(string: "\n-.--", attributes: attributes1)
@@ -63,15 +82,23 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         let configuration = ARWorldTrackingConfiguration()
         sceneView.session.run(configuration)
         
-        let blur = UIBlurEffect(style: .regular)
-        let blurView = UIVisualEffectView(effect: blur)
-        blurView.frame = sceneView.bounds
-        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        sceneView.addSubview(blurView)
+        //sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
+        
+//        let blur = UIBlurEffect(style: .regular)
+//        let blurView = UIVisualEffectView(effect: blur)
+//        blurView.frame = sceneView.bounds
+//        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//        sceneView.addSubview(blurView)
+    }
+    
+    func addBox() {
+        boxNode.geometry = SCNBox(width: 0.05, height: 0.05, length: 0.05, chamferRadius: 0)
+        boxNode.position = SCNVector3(0, 0, 0)
+        sceneView.scene.rootNode.addChildNode(boxNode)
     }
     
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        print(frame.camera.transform)
+        currentCamera = SCNMatrix4(frame.camera.transform)
     }
     
     func initiateSession() {
@@ -164,7 +191,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     
     // MARK: - Visualizations
     
-    func updateVisualization(distance: Float) {
+    func updateVisualization(distance: Float, direction: Float) {
         if distance != -1.0 {
             let distanceFill = String(format: "%0.1f", distance * 3.280839895)
             
@@ -185,6 +212,13 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
             directionDescriptionLabel.attributedText = attributedString1
         }
         
+        if direction != -999.0 {
+            arrowImage.isHidden = false
+            arrowImage.transform = arrowImage.transform.rotated(by: (CGFloat(direction) - atan2(arrowImage.transform.b, arrowImage.transform.a).radiansToDegrees).degreesToRadians)
+        } else {
+            arrowImage.isHidden = true
+        }
+        
 //        if peer.direction != nil {
 //            detailDirectionXLabel.text = String(format: "%0.2f", peer.direction!.x)
 //            detailDirectionYLabel.text = String(format: "%0.2f", peer.direction!.y)
@@ -197,6 +231,16 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     }
     
     // MARK: - `NISessionDelegate`
+    
+    func azimuth(from direction: simd_float3) -> Float {
+        return asin(direction.x)
+    }
+
+    // Provides the elevation from the argument 3D directional.
+    func elevation(from direction: simd_float3) -> Float {
+        return atan2(direction.z, direction.y) + .pi / 2
+    }
+
     
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
         guard let peerToken = peerDiscoveryToken else {
@@ -211,27 +255,37 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
             return
         }
         
-        if let dist = nearbyObjects.first?.distance {
-            //print(dist)
-        }
-        
         var distance: Float = MAXFLOAT
-        if nearbyObjects.count > 10 {
-            for i in 0..<100 {
-                if let dist = nearbyObjects[i].distance, dist < distance {
-                    distance = dist
-                }
+        /*if nearbyObjects.count >= 100 {
+            var dist: Float = 0.0
+            for i in (nearbyObjects.count - 100)..<nearbyObjects.count {
+                dist += nearbyObjects[i].distance!
             }
-            if distance == MAXFLOAT {
-                distance = -1.0
-            }
-        } else if nearbyObjects.count > 0 {
+            distance = dist / 100.0
+        } else */if nearbyObjects.count > 0 {
             distance = nearbyObjectUpdate.distance!
         } else {
             distance = -1.0
         }
+        
+        var direction : Float = -999.0
+        if let dir = nearbyObjects.first?.direction, distance != -1.0 {
+            directions.append(Direction(direction: dir, timestamp: Date()))
+            sceneView.session.setWorldOrigin(relativeTransform: simd_float4x4(currentCamera))
+            let yaw = -nearbyObjects.first!.direction.map(azimuth(from:))!
+            let pitch = nearbyObjects.first!.direction.map(elevation(from:))!
+            print(Date(), distance * 3.280839895, yaw.radiansToDegrees, pitch.radiansToDegrees)
+            direction = -yaw.radiansToDegrees
+            let transform = SCNMatrix4(m11: sin(yaw)*cos(pitch), m12: -sin(yaw), m13: cos(yaw)*sin(pitch), m14: 0, m21: sin(yaw)*cos(pitch), m22: cos(yaw), m23: sin(yaw)*cos(pitch), m24: 0, m31: -sin(pitch), m32: 0, m33: cos(pitch), m34: 0, m41: 0, m42: 0, m43: 0, m44: 1)
+            let vector = float4(SCNVector4(0, 0, -distance, 1)) * float4x4(transform)
+            boxNode.position = SCNVector3(vector.x / vector.w * distance, vector.y / vector.w * distance, vector.z / vector.w * distance)
+            //boxNode.position = SCNVector3(cos(yaw) * distance, sin(yaw) * distance, -distance)
+            sceneView.scene.rootNode.addChildNode(boxNode)
+        } else {
+            direction = -999.0
+        }
 
-        updateVisualization(distance: distance)
+        updateVisualization(distance: distance, direction: direction)
     }
 
     func session(_ session: NISession, didRemove nearbyObjects: [NINearbyObject], reason: NINearbyObject.RemovalReason) {
