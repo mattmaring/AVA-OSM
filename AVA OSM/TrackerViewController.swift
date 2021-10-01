@@ -60,6 +60,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         super.viewDidLoad()
         
         addBox()
+        arrowImage.isHidden = true
         
         sceneView.session.delegate = self
         
@@ -82,7 +83,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         let configuration = ARWorldTrackingConfiguration()
         sceneView.session.run(configuration)
         
-        //sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
+        sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
         
 //        let blur = UIBlurEffect(style: .regular)
 //        let blurView = UIVisualEffectView(effect: blur)
@@ -94,6 +95,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     func addBox() {
         boxNode.geometry = SCNBox(width: 0.05, height: 0.05, length: 0.05, chamferRadius: 0)
         boxNode.position = SCNVector3(0, 0, 0)
+        boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.white
         sceneView.scene.rootNode.addChildNode(boxNode)
     }
     
@@ -191,18 +193,47 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     
     // MARK: - Visualizations
     
+    func directionNaturalLanguage(degrees: Float) -> (String, String) {
+        if degrees > -165.0 && degrees < -135.0 {
+            return ("back", "left")
+        } else if degrees >= -135.0 && degrees <= -45.0 {
+            return ("to your", "left")
+        } else if degrees > -45.0 && degrees < -15.0 {
+            return ("slightly", "left")
+        } else if degrees >= -15.0 && degrees <= 15.0 {
+            return ("straight", "ahead")
+        } else if degrees > 15.0 && degrees < 45.0 {
+            return ("slightly", "right")
+        } else if degrees >= 45.0 && degrees <= 135.0 {
+            return ("to your", "right")
+        } else if degrees > 135.0 && degrees < 165.0 {
+            return ("back", "right")
+        } else {
+            return ("straight", "behind")
+        }
+    }
+    
     func updateVisualization(distance: Float, direction: Float) {
         if distance != -1.0 {
             let distanceFill = String(format: "%0.1f", distance * 3.280839895)
-            
-            let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
-            let attributedString2 = NSMutableAttributedString(string: "ft\nstraight", attributes: attributes2)
-            let attributedString3 = NSMutableAttributedString(string: " ahead", attributes: attributes1)
-            
-            attributedString1.append(attributedString2)
-            attributedString1.append(attributedString3)
-            
-            directionDescriptionLabel.attributedText = attributedString1
+            if direction != -999.0 {
+                let desc = directionNaturalLanguage(degrees: direction)
+                let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
+                let attributedString2 = NSMutableAttributedString(string: "ft\n\(desc.0)", attributes: attributes2)
+                let attributedString3 = NSMutableAttributedString(string: " \(desc.1)", attributes: attributes1)
+                
+                attributedString1.append(attributedString2)
+                attributedString1.append(attributedString3)
+                
+                directionDescriptionLabel.attributedText = attributedString1
+            } else {
+                let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
+                let attributedString2 = NSMutableAttributedString(string: "ft", attributes: attributes2)
+                
+                attributedString1.append(attributedString2)
+                
+                directionDescriptionLabel.attributedText = attributedString1
+            }
         } else {
             let attributedString1 = NSMutableAttributedString(string: "\n-.--", attributes: attributes1)
             let attributedString2 = NSMutableAttributedString(string: " ft", attributes: attributes2)
@@ -256,33 +287,48 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         }
         
         var distance: Float = MAXFLOAT
-        /*if nearbyObjects.count >= 100 {
-            var dist: Float = 0.0
-            for i in (nearbyObjects.count - 100)..<nearbyObjects.count {
-                dist += nearbyObjects[i].distance!
-            }
-            distance = dist / 100.0
-        } else */if nearbyObjects.count > 0 {
+        if nearbyObjects.count > 0 {
             distance = nearbyObjectUpdate.distance!
+//            // Initialization
+//            let process_uncertainty: Float = 0.15
+//            let predicted_estimate: Float = 10.0 // 10m or 29.5276ft, change this value later based on GPS/etc
+//            let standard_deviation: Float = 0.5
+//            let error_variance = standard_deviation * standard_deviation //0.25
+//
+//            // Prediction
+//            let current_estimate: Float = 10.0 // 10m or 29.5276ft, change this value later based on GPS/etc
+//            let variance = error_variance + process_uncertainty //0.40
+//
+//            // First Iteration
+//            let measurement_value = nearbyObjectUpdate.distance!
+//            let measurement_uncertainty = error_variance
+//            let kalman_gain = variance / (variance + measurement_uncertainty) // 0.61538
+//            let distance = current_estimate + kalman_gain * (measurement_value - current_estimate)
+//        } else if nearbyObjects.count > 1 {
+//            let count = nearbyObjects.count
+//            let dist = nearbyObjectUpdate.distance!
+//            let prev = nearbyObjects[count - 2].distance!
+//            let variance = (dist - prev) / prev
+//            distance = prev + variance * (dist - prev)
         } else {
             distance = -1.0
         }
         
-        var direction : Float = -999.0
+        var direction : Float
         if let dir = nearbyObjects.first?.direction, distance != -1.0 {
             directions.append(Direction(direction: dir, timestamp: Date()))
             sceneView.session.setWorldOrigin(relativeTransform: simd_float4x4(currentCamera))
-            let yaw = -nearbyObjects.first!.direction.map(azimuth(from:))!
-            let pitch = nearbyObjects.first!.direction.map(elevation(from:))!
-            print(Date(), distance * 3.280839895, yaw.radiansToDegrees, pitch.radiansToDegrees)
-            direction = -yaw.radiansToDegrees
-            let transform = SCNMatrix4(m11: sin(yaw)*cos(pitch), m12: -sin(yaw), m13: cos(yaw)*sin(pitch), m14: 0, m21: sin(yaw)*cos(pitch), m22: cos(yaw), m23: sin(yaw)*cos(pitch), m24: 0, m31: -sin(pitch), m32: 0, m33: cos(pitch), m34: 0, m41: 0, m42: 0, m43: 0, m44: 1)
-            let vector = float4(SCNVector4(0, 0, -distance, 1)) * float4x4(transform)
-            boxNode.position = SCNVector3(vector.x / vector.w * distance, vector.y / vector.w * distance, vector.z / vector.w * distance)
-            //boxNode.position = SCNVector3(cos(yaw) * distance, sin(yaw) * distance, -distance)
+            let yaw = nearbyObjects.first!.direction.map(azimuth(from:))!
+            let pitch = -nearbyObjects.first!.direction.map(elevation(from:))!
+            print(distance * 3.280839895, yaw.radiansToDegrees, pitch.radiansToDegrees)
+            direction = yaw.radiansToDegrees
+            boxNode.position = SCNVector3(sin(pitch) * distance, sin(yaw) * distance, -distance)
             sceneView.scene.rootNode.addChildNode(boxNode)
         } else {
-            direction = -999.0
+            let transform = sceneView.session.currentFrame?.camera.transform
+            
+            print(boxNode.position, transform?.columns.3)
+            direction = -999.0 //boxNode.eulerAngles
         }
 
         updateVisualization(distance: distance, direction: direction)
