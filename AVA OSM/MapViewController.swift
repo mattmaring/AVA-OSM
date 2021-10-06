@@ -9,9 +9,36 @@ import UIKit
 import MapKit
 import CoreLocation
 
+class Debug {
+    var modeText = "User"
+    static let sharedInstance: Debug = {
+        let instance = Debug()
+        return instance
+    }()
+    
+    private init() {}
+    
+    func setMode(mode: String) {
+        modeText = mode
+    }
+    
+    func getMode() -> String {
+        return modeText
+    }
+}
+
 class MapViewController: UIViewController, CLLocationManagerDelegate {
 
     @IBOutlet weak var mapView: MKMapView!
+    @IBOutlet weak var modeText: UILabel!
+    @IBAction func switchMode(_ sender: Any) {
+        if (sender as AnyObject).isOn == true {
+            Debug.sharedInstance.modeText = "User"
+        } else {
+            Debug.sharedInstance.modeText = "Driver"
+        }
+    }
+    
     var locationManager = CLLocationManager()
     
     override func viewDidLoad() {
@@ -20,7 +47,7 @@ class MapViewController: UIViewController, CLLocationManagerDelegate {
         locationManager.requestAlwaysAuthorization()
         if (CLLocationManager.locationServicesEnabled()) {
             locationManager.delegate = self
-            locationManager.desiredAccuracy = kCLLocationAccuracyBest
+            locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
             locationManager.startUpdatingLocation()
             locationManager.startUpdatingHeading()
         }

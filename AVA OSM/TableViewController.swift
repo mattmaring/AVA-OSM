@@ -103,7 +103,7 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
         locationManager.requestAlwaysAuthorization()
         if (CLLocationManager.locationServicesEnabled()) {
             locationManager.delegate = self
-            locationManager.desiredAccuracy = kCLLocationAccuracyBest
+            locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
             locationManager.headingFilter = 5.0
             locationManager.distanceFilter = 1.0
             locationManager.startUpdatingLocation()

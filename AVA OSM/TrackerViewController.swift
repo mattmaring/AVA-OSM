@@ -8,9 +8,11 @@
 import UIKit
 import NearbyInteraction
 import MultipeerConnectivity
+import CoreLocation
 import ARKit
 import SceneKit
 import simd
+import MapKit
 
 struct Distance {
     var distance: Float
@@ -29,11 +31,12 @@ extension FloatingPoint {
     var radiansToDegrees: Self { self * 180 / .pi }
 }
 
-class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDelegate, ARSessionDelegate {
+class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDelegate, ARSessionDelegate, CLLocationManagerDelegate {
     
     // MARK: - `IBOutlet` instances
     @IBOutlet weak var directionDescriptionLabel: UILabel!
     @IBOutlet weak var arrowImage: UIImageView!
+    @IBOutlet weak var circleImage: UIImageView!
     @IBOutlet weak var sceneView: ARSCNView!
     
     // MARK: - ARKit variables
@@ -47,10 +50,27 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     var connectedPeer: MCPeerID?
     var peerDiscoveryToken: NIDiscoveryToken?
     var peerDisplayName: String?
+    var locationManager = CLLocationManager()
+    var circleImageSize = CGSize()
     
     // MARK: - Data storage
     var distances: [Distance] = []
     var directions: [Direction] = []
+    
+    // MARK: - Timer
+    var hapticFeedbackTimer: Timer?
+    var timeInterval = 0.01
+    var timerCounter: Float = 0.0
+    
+    // MARK: - Default values
+    let DIST_MAX: Float = 999999.0
+    let DIR_MAX: Float = 999.0
+    let CLOSE_RANGE: Float = 0.333
+    
+    // MARK: - Car location
+    let destination = CLLocation(latitude: 44.563138, longitude: -69.661305) // Example location of vehicle in Eustis Parking Lot
+    var car_distance: Float = 999999.0
+    var car_direction: Float = 999.0
     
     // MARK: - Text formmatting
     let attributes1 = [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 50, weight: UIFont.Weight.bold), NSAttributedString.Key.foregroundColor : UIColor.label] //primary
@@ -59,8 +79,30 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        addBox()
+        circleImageSize = circleImage.bounds.size
+        hapticFeedbackTimer?.invalidate()
+        
+        // Request permission to access location
+        locationManager.requestAlwaysAuthorization()
+        if (CLLocationManager.locationServicesEnabled()) {
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
+            //locationManager.headingFilter = 5.0
+            locationManager.distanceFilter = Double(CLOSE_RANGE)
+            locationManager.startUpdatingLocation()
+            
+            // simulator doesn't support heading data
+            if (CLLocationManager.headingAvailable()) {
+                locationManager.startUpdatingHeading()
+            }
+        }
+        
+        if Debug.sharedInstance.modeText == "User" {
+            addBox()
+        }
+        
         arrowImage.isHidden = true
+        circleImage.isHidden = true
         
         sceneView.session.delegate = self
         
@@ -83,13 +125,112 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         let configuration = ARWorldTrackingConfiguration()
         sceneView.session.run(configuration)
         
-        sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
+        if Debug.sharedInstance.modeText == "User" {
+            //sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
+        }
         
-//        let blur = UIBlurEffect(style: .regular)
-//        let blurView = UIVisualEffectView(effect: blur)
-//        blurView.frame = sceneView.bounds
-//        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        sceneView.addSubview(blurView)
+        let blur = UIBlurEffect(style: .regular)
+        let blurView = UIVisualEffectView(effect: blur)
+        blurView.frame = sceneView.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        sceneView.addSubview(blurView)
+    }
+    
+    // See Haversine formula for calculating bearing between two points:
+    // https://en.wikipedia.org/wiki/Haversine_formula
+    // https://www.igismap.com/formula-to-find-bearing-or-heading-angle-between-two-points-latitude-longitude/
+    func haversine(from: CLLocationCoordinate2D, to: CLLocationCoordinate2D) -> Float {
+        let deg2rad = Double.pi / 180.0
+        let phi1 = from.latitude * deg2rad
+        let lambda1 = from.longitude * deg2rad
+        let phi2 = to.latitude * deg2rad
+        let lambda2 = to.longitude * deg2rad
+        let deltaLon = lambda2 - lambda1
+        let result = atan2(sin(deltaLon) * cos(phi2), cos(phi1) * sin(phi2) - sin(phi1) * cos(phi2) * cos(deltaLon))
+        return Float(result * 180.0 / Double.pi)
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if Debug.sharedInstance.modeText == "User" {
+            updateDirections()
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
+        if Debug.sharedInstance.modeText == "User" {
+            updateDirections()
+        }
+    }
+    
+    func updateDirections() {
+        // Update distance
+        if let distance = locationManager.location?.distance(from: destination) {
+            car_distance = Float(distance)
+        } else {
+            car_distance = DIST_MAX
+        }
+        
+        // Update direction
+        if let coordinate = locationManager.location?.coordinate {
+            car_direction = haversine(from: destination.coordinate, to: coordinate)
+        } else {
+            car_direction = DIR_MAX
+        }
+        
+        let heading = car_direction
+        if let direction = locationManager.heading?.trueHeading {
+            if heading < 0.0 {
+                let result = heading + 180.0 - Float(direction)
+                if result < -180.0 {
+                    car_direction = 360.0 + result
+                } else {
+                    car_direction = result
+                }
+            } else if heading != DIR_MAX {
+                let result = heading - 180.0 - Float(direction)
+                if result < -180.0 {
+                    car_direction = 360.0 + result
+                } else {
+                    car_direction = result
+                }
+            } else {
+                car_direction = DIR_MAX
+            }
+        } else {
+            car_direction = DIR_MAX
+        }
+        
+        if connectedPeer == nil {
+            if car_distance < CLOSE_RANGE {
+                timeInterval = getTimeInterval(distance: car_distance)
+                if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
+                    hapticFeedbackTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(closeTap), userInfo: nil, repeats: true)
+                }
+            } else {
+                hapticFeedbackTimer?.invalidate()
+            }
+            updateVisualization(distance: car_distance, direction: car_direction)
+        }
+    }
+    
+    func getTimeInterval(distance: Float) -> TimeInterval {
+        if distance < CLOSE_RANGE / 8.0 {
+            return TimeInterval(0.01)
+        } else if distance < 2.0 * CLOSE_RANGE / 8.0 {
+            return TimeInterval(0.02)
+        } else if distance < 3.0 * CLOSE_RANGE / 8.0 {
+            return TimeInterval(0.03)
+        } else if distance < 4.0 * CLOSE_RANGE / 8.0 {
+            return TimeInterval(0.04)
+        } else if distance < 5.0 * CLOSE_RANGE / 8.0 {
+            return TimeInterval(0.05)
+        } else if distance < 6.0 * CLOSE_RANGE / 8.0 {
+            return TimeInterval(0.06)
+        } else if distance < 7.0 * CLOSE_RANGE / 8.0 {
+            return TimeInterval(0.07)
+        } else {
+            return TimeInterval(0.08)
+        }
     }
     
     func addBox() {
@@ -214,25 +355,41 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     }
     
     func updateVisualization(distance: Float, direction: Float) {
-        if distance != -1.0 {
+        if distance != DIST_MAX {
             let distanceFill = String(format: "%0.1f", distance * 3.280839895)
-            if direction != -999.0 {
-                let desc = directionNaturalLanguage(degrees: direction)
+            if distance < CLOSE_RANGE {
                 let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
-                let attributedString2 = NSMutableAttributedString(string: "ft\n\(desc.0)", attributes: attributes2)
-                let attributedString3 = NSMutableAttributedString(string: " \(desc.1)", attributes: attributes1)
+                let attributedString2 = NSMutableAttributedString(string: "ft\n", attributes: attributes2)
+                let attributedString3 = NSMutableAttributedString(string: "nearby", attributes: attributes1)
                 
                 attributedString1.append(attributedString2)
                 attributedString1.append(attributedString3)
                 
                 directionDescriptionLabel.attributedText = attributedString1
+                
+                circleImage.isHidden = false
+                let scale = CGFloat(distance / CLOSE_RANGE / 2.0 + 0.5)
+                circleImage.bounds.size = CGSize(width: scale * circleImageSize.width, height: scale * circleImageSize.height)
             } else {
-                let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
-                let attributedString2 = NSMutableAttributedString(string: "ft", attributes: attributes2)
-                
-                attributedString1.append(attributedString2)
-                
-                directionDescriptionLabel.attributedText = attributedString1
+                if direction != DIR_MAX {
+                    let desc = directionNaturalLanguage(degrees: direction)
+                    let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
+                    let attributedString2 = NSMutableAttributedString(string: "ft\n\(desc.0)", attributes: attributes2)
+                    let attributedString3 = NSMutableAttributedString(string: " \(desc.1)", attributes: attributes1)
+                    
+                    attributedString1.append(attributedString2)
+                    attributedString1.append(attributedString3)
+                    
+                    directionDescriptionLabel.attributedText = attributedString1
+                } else {
+                    let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
+                    let attributedString2 = NSMutableAttributedString(string: "ft", attributes: attributes2)
+                    
+                    attributedString1.append(attributedString2)
+                    
+                    directionDescriptionLabel.attributedText = attributedString1
+                }
+                circleImage.isHidden = true
             }
         } else {
             let attributedString1 = NSMutableAttributedString(string: "\n-.--", attributes: attributes1)
@@ -241,24 +398,24 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
             attributedString1.append(attributedString2)
             
             directionDescriptionLabel.attributedText = attributedString1
+            circleImage.isHidden = true
         }
         
-        if direction != -999.0 {
+        if direction != DIR_MAX && circleImage.isHidden {
             arrowImage.isHidden = false
             arrowImage.transform = arrowImage.transform.rotated(by: (CGFloat(direction) - atan2(arrowImage.transform.b, arrowImage.transform.a).radiansToDegrees).degreesToRadians)
         } else {
             arrowImage.isHidden = true
         }
-        
-//        if peer.direction != nil {
-//            detailDirectionXLabel.text = String(format: "%0.2f", peer.direction!.x)
-//            detailDirectionYLabel.text = String(format: "%0.2f", peer.direction!.y)
-//            detailDirectionZLabel.text = String(format: "%0.2f", peer.direction!.z)
-//        } else {
-//            detailDirectionXLabel.text = "-.--"
-//            detailDirectionYLabel.text = "-.--"
-//            detailDirectionZLabel.text = "-.--"
-//        }
+    }
+    
+    @objc func closeTap() {
+        timerCounter += 0.01
+        if timerCounter >= Float(timeInterval) {
+            timerCounter = 0.0
+            let generator = UIImpactFeedbackGenerator(style: .heavy)
+            generator.impactOccurred()
+        }
     }
     
     // MARK: - `NISessionDelegate`
@@ -271,11 +428,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     func elevation(from direction: simd_float3) -> Float {
         return atan2(direction.z, direction.y) + .pi / 2
     }
-
     
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
         guard let peerToken = peerDiscoveryToken else {
-            fatalError("don't have peer token")
+            return
         }
 
         let peerObj = nearbyObjects.first { (obj) -> Bool in
@@ -288,7 +444,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         
         var distance: Float = MAXFLOAT
         if nearbyObjects.count > 0 {
-            distance = nearbyObjectUpdate.distance!
+            distance = max(0.0, nearbyObjectUpdate.distance!)
 //            // Initialization
 //            let process_uncertainty: Float = 0.15
 //            let predicted_estimate: Float = 10.0 // 10m or 29.5276ft, change this value later based on GPS/etc
@@ -311,27 +467,67 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
 //            let variance = (dist - prev) / prev
 //            distance = prev + variance * (dist - prev)
         } else {
-            distance = -1.0
+            distance = DIST_MAX
         }
         
         var direction : Float
-        if let dir = nearbyObjects.first?.direction, distance != -1.0 {
-            directions.append(Direction(direction: dir, timestamp: Date()))
-            sceneView.session.setWorldOrigin(relativeTransform: simd_float4x4(currentCamera))
-            let yaw = nearbyObjects.first!.direction.map(azimuth(from:))!
-            let pitch = -nearbyObjects.first!.direction.map(elevation(from:))!
-            print(distance * 3.280839895, yaw.radiansToDegrees, pitch.radiansToDegrees)
-            direction = yaw.radiansToDegrees
-            boxNode.position = SCNVector3(sin(pitch) * distance, sin(yaw) * distance, -distance)
-            sceneView.scene.rootNode.addChildNode(boxNode)
+        if distance != DIST_MAX {
+            if let dir = nearbyObjects.first?.direction {
+                directions.append(Direction(direction: dir, timestamp: Date()))
+                sceneView.session.setWorldOrigin(relativeTransform: simd_float4x4(currentCamera))
+                let yaw = nearbyObjects.first!.direction.map(azimuth(from:))!
+                let pitch = -nearbyObjects.first!.direction.map(elevation(from:))!
+                
+                // Debug
+                print(distance * 3.280839895, yaw.radiansToDegrees, pitch.radiansToDegrees)
+                
+                direction = yaw.radiansToDegrees
+                if Debug.sharedInstance.modeText == "User" {
+                    boxNode.position = SCNVector3(sin(pitch) * distance, sin(yaw) * distance, -distance)
+                    sceneView.scene.rootNode.addChildNode(boxNode)
+                }
+            } else {
+                let transform = sceneView.session.currentFrame?.camera.transform
+                print(boxNode.position, transform?.columns.3)
+                direction = DIR_MAX
+            }
         } else {
-            let transform = sceneView.session.currentFrame?.camera.transform
-            
-            print(boxNode.position, transform?.columns.3)
-            direction = -999.0 //boxNode.eulerAngles
+            direction = DIR_MAX
         }
-
-        updateVisualization(distance: distance, direction: direction)
+        
+        if connectedPeer != nil {
+            if distance == DIST_MAX && direction == DIR_MAX {
+                if car_distance < CLOSE_RANGE {
+                    timeInterval = getTimeInterval(distance: car_distance)
+                    if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
+                        hapticFeedbackTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(closeTap), userInfo: nil, repeats: true)
+                    }
+                } else {
+                    hapticFeedbackTimer?.invalidate()
+                }
+                updateVisualization(distance: car_distance, direction: car_direction)
+            } else if direction == DIR_MAX {
+                if distance < CLOSE_RANGE {
+                    timeInterval = getTimeInterval(distance: distance)
+                    if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
+                        hapticFeedbackTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(closeTap), userInfo: nil, repeats: true)
+                    }
+                } else {
+                    hapticFeedbackTimer?.invalidate()
+                }
+                updateVisualization(distance: distance, direction: car_direction)
+            } else {
+                if distance < CLOSE_RANGE {
+                    timeInterval = getTimeInterval(distance: distance)
+                    if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
+                        hapticFeedbackTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(closeTap), userInfo: nil, repeats: true)
+                    }
+                } else {
+                    hapticFeedbackTimer?.invalidate()
+                }
+                updateVisualization(distance: distance, direction: direction)
+            }
+        }
     }
 
     func session(_ session: NISession, didRemove nearbyObjects: [NINearbyObject], reason: NINearbyObject.RemovalReason) {
@@ -360,10 +556,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
             fatalError("Unknown and unhandled NINearbyObject.RemovalReason")
         }
     }
-
-//    func sessionWasSuspended(_ session: NISession) {
-//        print("Session suspended")
-//    }
 
     func sessionSuspensionEnded(_ session: NISession) {
         if let config = self.session?.configuration {
