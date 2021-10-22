@@ -68,7 +68,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     let CLOSE_RANGE: Float = 0.333
     
     // MARK: - Car location
-    let destination = CLLocation(latitude: 44.563138, longitude: -69.661305) // Example location of vehicle in Eustis Parking Lot
+    let destination = CLLocation(latitude: 44.564825926200015, longitude: -69.65909124016235) // Example location of vehicle in Davis Parking Lot
     var car_distance: Float = 999999.0
     var car_direction: Float = 999.0
     
@@ -76,8 +76,26 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     let attributes1 = [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 50, weight: UIFont.Weight.bold), NSAttributedString.Key.foregroundColor : UIColor.label] //primary
     let attributes2 = [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 50, weight: UIFont.Weight.semibold), NSAttributedString.Key.foregroundColor : UIColor.secondaryLabel] //secondary
     
+    // MARK: - Logging
+    let dateFormat = DateFormatter()
+    var coreLocationOutput = "timestamp, distance (ft), direction (deg), longitude, latitude, altitude, course, speed, horizontalAccuracy, verticalAccuracy, horizontalAccuracy, speedAccuracy\n"
+    var coreLocationPath = URL(string: "")
+    var nearbyInteractionOutput = "timestamp, distance (ft), yaw (deg), pitch (deg)\n"
+    var nearbyInteractionPath = URL(string: "")
+    var renderingOutput = "timestamp, distance (ft), direction (deg)\n"
+    var renderingPath = URL(string: "")
+    var visualizationOutput = ""
+    var visualizationPath = URL(string: "")
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        dateFormat.dateFormat = "y-MM-dd H:m:ss.SSSS"
+        let dateString = dateFormat.string(from: Date())
+        coreLocationPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) CoreLocation.csv")
+        nearbyInteractionPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) NearbyInteraction.csv")
+        renderingPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) Rendering.csv")
+        visualizationPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) Visualization.csv")
         
         circleImageSize = circleImage.bounds.size
         hapticFeedbackTimer?.invalidate()
@@ -199,6 +217,13 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         } else {
             car_direction = DIR_MAX
         }
+        if let location = locationManager.location {
+            let coordinate = location.coordinate
+            coreLocationOutput += "\(dateFormat.string(from: Date())), \(car_distance * 3.280839895), \(car_direction), \(coordinate.longitude), \(coordinate.latitude), \(location.altitude), \(location.course), \(location.speed), \(location.horizontalAccuracy), \(location.verticalAccuracy), \(location.horizontalAccuracy), \(location.speedAccuracy)\n"
+        }
+        if let stringData = coreLocationOutput.data(using: .utf8) {
+            try? stringData.write(to: coreLocationPath!)
+        }
         
         if connectedPeer == nil {
             if car_distance < CLOSE_RANGE {
@@ -210,6 +235,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
                 hapticFeedbackTimer?.invalidate()
             }
             updateVisualization(distance: car_distance, direction: car_direction)
+            renderingOutput += "\(dateFormat.string(from: Date())), \(car_distance), \(car_direction)\n"
+            if let stringData = renderingOutput.data(using: .utf8) {
+                try? stringData.write(to: renderingPath!)
+            }
         }
     }
     
@@ -418,7 +447,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         }
     }
     
-    // MARK: - `NISessionDelegate`
+    // MARK: - NISessionDelegate
     
     func azimuth(from direction: simd_float3) -> Float {
         return asin(direction.x)
@@ -477,9 +506,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
                 sceneView.session.setWorldOrigin(relativeTransform: simd_float4x4(currentCamera))
                 let yaw = nearbyObjects.first!.direction.map(azimuth(from:))!
                 let pitch = -nearbyObjects.first!.direction.map(elevation(from:))!
-                
-                // Debug
-                print(distance * 3.280839895, yaw.radiansToDegrees, pitch.radiansToDegrees)
+                nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(distance * 3.280839895), \(yaw.radiansToDegrees), \(pitch.radiansToDegrees)\n"
+                if let stringData = nearbyInteractionOutput.data(using: .utf8) {
+                    try? stringData.write(to: nearbyInteractionPath!)
+                }
                 
                 direction = yaw.radiansToDegrees
                 if Debug.sharedInstance.modeText == "User" {
@@ -487,12 +517,33 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
                     sceneView.scene.rootNode.addChildNode(boxNode)
                 }
             } else {
-                let transform = sceneView.session.currentFrame?.camera.transform
-                print(boxNode.position, transform?.columns.3)
-                direction = DIR_MAX
+                if boxNode.transform.m41 != 0.0 || boxNode.transform.m42 != 0.0 || boxNode.transform.m43 != 0.0 {
+                    let transform = sceneView.session.currentFrame?.camera.transform
+                    let deltax = boxNode.transform.m41 - (transform?.columns.3[0])!
+                    let deltay = boxNode.transform.m42 - (transform?.columns.3[1])!
+                    let deltaz = boxNode.transform.m43 - (transform?.columns.3[2])!
+                    let unitvector = simd_float3(deltax / distance, deltay / distance, deltaz / distance)
+                    let yaw = asin(unitvector.x)
+                    let pitch = -atan2(unitvector.z, unitvector.y) + .pi / 2
+                    direction = yaw.radiansToDegrees
+                    nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(distance * 3.280839895), \(yaw), \(pitch)\n"
+                    if let stringData = nearbyInteractionOutput.data(using: .utf8) {
+                        try? stringData.write(to: nearbyInteractionPath!)
+                    }
+                } else {
+                    direction = DIR_MAX
+                    nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(distance * 3.280839895), using GPS direction backup, using GPS direction backup\n"
+                    if let stringData = nearbyInteractionOutput.data(using: .utf8) {
+                        try? stringData.write(to: nearbyInteractionPath!)
+                    }
+                }
             }
         } else {
             direction = DIR_MAX
+            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(distance * 3.280839895), nil, nil\n"
+            if let stringData = nearbyInteractionOutput.data(using: .utf8) {
+                try? stringData.write(to: nearbyInteractionPath!)
+            }
         }
         
         if connectedPeer != nil {
@@ -506,6 +557,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
                     hapticFeedbackTimer?.invalidate()
                 }
                 updateVisualization(distance: car_distance, direction: car_direction)
+                renderingOutput += "\(dateFormat.string(from: Date())), \(car_distance * 3.280839895), \(car_direction)\n"
+                if let stringData = renderingOutput.data(using: .utf8) {
+                    try? stringData.write(to: renderingPath!)
+                }
             } else if direction == DIR_MAX {
                 if distance < CLOSE_RANGE {
                     timeInterval = getTimeInterval(distance: distance)
@@ -516,6 +571,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
                     hapticFeedbackTimer?.invalidate()
                 }
                 updateVisualization(distance: distance, direction: car_direction)
+                renderingOutput += "\(dateFormat.string(from: Date())), \(distance * 3.280839895), \(car_direction)\n"
+                if let stringData = renderingOutput.data(using: .utf8) {
+                    try? stringData.write(to: renderingPath!)
+                }
             } else {
                 if distance < CLOSE_RANGE {
                     timeInterval = getTimeInterval(distance: distance)
@@ -526,6 +585,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
                     hapticFeedbackTimer?.invalidate()
                 }
                 updateVisualization(distance: distance, direction: direction)
+                renderingOutput += "\(dateFormat.string(from: Date())), \(distance * 3.280839895), \(direction)\n"
+                if let stringData = renderingOutput.data(using: .utf8) {
+                    try? stringData.write(to: renderingPath!)
+                }
             }
         }
     }

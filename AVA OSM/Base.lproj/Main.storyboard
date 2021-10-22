@@ -19,18 +19,25 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" showsUserLocation="YES" showsScale="YES" translatesAutoresizingMaskIntoConstraints="NO" id="RUG-LU-0yw">
-                                <rect key="frame" x="0.0" y="0.0" width="414" height="813"/>
+                                <rect key="frame" x="0.0" y="131" width="414" height="682"/>
                             </mapView>
-                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eW5-QZ-G1L">
-                                <rect key="frame" x="20" y="44" width="49" height="31"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eW5-QZ-G1L">
+                                <rect key="frame" x="20" y="762" width="51" height="31"/>
                                 <connections>
                                     <action selector="switchMode:" destination="8qu-mc-AE9" eventType="valueChanged" id="1Hw-H7-rO8"/>
                                 </connections>
                             </switch>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="User" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2dC-7L-xjj">
-                                <rect key="frame" x="75" y="49" width="319" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="B4f-op-wbH">
+                                <rect key="frame" x="20" y="44" width="374" height="65"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="65" id="juN-Jh-Zmx"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="User" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2dC-7L-xjj">
+                                <rect key="frame" x="77" y="767" width="319" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
@@ -39,10 +46,18 @@
                         <viewLayoutGuide key="safeArea" id="JyO-tU-3Oa"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="RUG-LU-0yw" firstAttribute="trailing" secondItem="JyO-tU-3Oa" secondAttribute="trailing" id="RRt-0y-dlm"/>
-                            <constraint firstItem="RUG-LU-0yw" firstAttribute="top" secondItem="Uu6-Bi-hBY" secondAttribute="top" id="YXa-CD-lB8"/>
-                            <constraint firstItem="RUG-LU-0yw" firstAttribute="leading" secondItem="JyO-tU-3Oa" secondAttribute="leading" id="bAO-dm-fhk"/>
-                            <constraint firstItem="RUG-LU-0yw" firstAttribute="bottom" secondItem="JyO-tU-3Oa" secondAttribute="bottom" id="bMS-rI-mEA"/>
+                            <constraint firstItem="B4f-op-wbH" firstAttribute="leading" secondItem="Uu6-Bi-hBY" secondAttribute="leadingMargin" id="1t3-V6-WPR"/>
+                            <constraint firstItem="RUG-LU-0yw" firstAttribute="top" secondItem="B4f-op-wbH" secondAttribute="bottom" constant="22" id="8Ge-mc-JxP"/>
+                            <constraint firstItem="eW5-QZ-G1L" firstAttribute="centerY" secondItem="2dC-7L-xjj" secondAttribute="centerY" id="8LI-1F-OyI"/>
+                            <constraint firstItem="JyO-tU-3Oa" firstAttribute="trailing" secondItem="2dC-7L-xjj" secondAttribute="trailing" constant="18" id="97m-R3-u3N"/>
+                            <constraint firstItem="B4f-op-wbH" firstAttribute="trailing" secondItem="Uu6-Bi-hBY" secondAttribute="trailingMargin" id="MqU-Tm-2gs"/>
+                            <constraint firstItem="B4f-op-wbH" firstAttribute="leading" secondItem="eW5-QZ-G1L" secondAttribute="leading" id="YRB-f1-mWx"/>
+                            <constraint firstItem="JyO-tU-3Oa" firstAttribute="bottom" secondItem="eW5-QZ-G1L" secondAttribute="bottom" constant="20" id="ens-VS-Ysg"/>
+                            <constraint firstItem="RUG-LU-0yw" firstAttribute="leading" secondItem="JyO-tU-3Oa" secondAttribute="leading" id="qrh-AX-z83"/>
+                            <constraint firstItem="RUG-LU-0yw" firstAttribute="bottom" secondItem="JyO-tU-3Oa" secondAttribute="bottom" id="tCO-IX-G96"/>
+                            <constraint firstItem="B4f-op-wbH" firstAttribute="top" secondItem="JyO-tU-3Oa" secondAttribute="top" id="xCq-sC-LtA"/>
+                            <constraint firstItem="2dC-7L-xjj" firstAttribute="leading" secondItem="eW5-QZ-G1L" secondAttribute="trailing" constant="8" id="yjL-7T-6Hb"/>
+                            <constraint firstItem="B4f-op-wbH" firstAttribute="centerX" secondItem="RUG-LU-0yw" secondAttribute="centerX" id="zJ4-0Q-rAr"/>
                         </constraints>
                     </view>
                     <tabBarItem key="tabBarItem" title="Map" image="map" catalog="system" id="Ig2-ix-mXb" userLabel="Map">
@@ -51,6 +66,7 @@
                     <connections>
                         <outlet property="mapView" destination="RUG-LU-0yw" id="2qR-n8-lkI"/>
                         <outlet property="modeText" destination="2dC-7L-xjj" id="a15-Vm-knL"/>
+                        <outlet property="navigationDescription" destination="B4f-op-wbH" id="wVH-rs-OYG"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="X8m-VB-dih" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

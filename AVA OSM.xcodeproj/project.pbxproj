@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,6 +15,7 @@
 		C0395436268DF30700E2ACB9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C0395434268DF30700E2ACB9 /* LaunchScreen.storyboard */; };
 		C0395441268DF30700E2ACB9 /* AVA_OSMTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0395440268DF30700E2ACB9 /* AVA_OSMTests.swift */; };
 		C039544C268DF30800E2ACB9 /* AVA_OSMUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039544B268DF30800E2ACB9 /* AVA_OSMUITests.swift */; };
+		C045168C2723033D00228C03 /* Keys.plist in Resources */ = {isa = PBXBuildFile; fileRef = C045168B2723033D00228C03 /* Keys.plist */; };
 		C054C43B269DAFA600BD0DB8 /* TableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */; };
 		C065539627029648001036AF /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C065539527029648001036AF /* ARKit.framework */; };
 		C065539827033EA7001036AF /* ARWorldAnchor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C065539727033EA7001036AF /* ARWorldAnchor.swift */; };
@@ -57,6 +58,7 @@
 		C0395447268DF30800E2ACB9 /* AVA OSMUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AVA OSMUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C039544B268DF30800E2ACB9 /* AVA_OSMUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVA_OSMUITests.swift; sourceTree = "<group>"; };
 		C039544D268DF30800E2ACB9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C045168B2723033D00228C03 /* Keys.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Keys.plist; sourceTree = "<group>"; };
 		C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewCell.swift; sourceTree = "<group>"; };
 		C065539527029648001036AF /* ARKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ARKit.framework; path = System/Library/Frameworks/ARKit.framework; sourceTree = SDKROOT; };
 		C065539727033EA7001036AF /* ARWorldAnchor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARWorldAnchor.swift; sourceTree = "<group>"; };
@@ -131,6 +133,7 @@
 				C0395432268DF30700E2ACB9 /* Assets.xcassets */,
 				C0395434268DF30700E2ACB9 /* LaunchScreen.storyboard */,
 				C0395437268DF30700E2ACB9 /* Info.plist */,
+				C045168B2723033D00228C03 /* Keys.plist */,
 			);
 			path = "AVA OSM";
 			sourceTree = "<group>";
@@ -250,6 +253,9 @@
 				Base,
 			);
 			mainGroup = C039541D268DF30600E2ACB9;
+			packageReferences = (
+				C04516882722461C00228C03 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */,
+			);
 			productRefGroup = C0395427268DF30600E2ACB9 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -266,6 +272,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C045168C2723033D00228C03 /* Keys.plist in Resources */,
 				C0395436268DF30700E2ACB9 /* LaunchScreen.storyboard in Resources */,
 				C0395433268DF30700E2ACB9 /* Assets.xcassets in Resources */,
 				C0395431268DF30600E2ACB9 /* Main.storyboard in Resources */,
@@ -634,6 +641,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C04516882722461C00228C03 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mapbox/mapbox-navigation-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = C039541E268DF30600E2ACB9 /* Project object */;
 }
