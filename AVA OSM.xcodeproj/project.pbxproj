@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		C0154E6E2700EAE9005B9727 /* MPCSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0154E6D2700EAE9005B9727 /* MPCSession.swift */; };
+		C020811C2730F19B0017CD6A /* BluetoothLECentral.swift in Sources */ = {isa = PBXBuildFile; fileRef = C020811B2730F19B0017CD6A /* BluetoothLECentral.swift */; };
 		C039542A268DF30600E2ACB9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0395429268DF30600E2ACB9 /* AppDelegate.swift */; };
 		C039542C268DF30600E2ACB9 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039542B268DF30600E2ACB9 /* SceneDelegate.swift */; };
 		C0395431268DF30600E2ACB9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C039542F268DF30600E2ACB9 /* Main.storyboard */; };
@@ -15,10 +16,11 @@
 		C0395436268DF30700E2ACB9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C0395434268DF30700E2ACB9 /* LaunchScreen.storyboard */; };
 		C0395441268DF30700E2ACB9 /* AVA_OSMTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0395440268DF30700E2ACB9 /* AVA_OSMTests.swift */; };
 		C039544C268DF30800E2ACB9 /* AVA_OSMUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039544B268DF30800E2ACB9 /* AVA_OSMUITests.swift */; };
-		C045168C2723033D00228C03 /* Keys.plist in Resources */ = {isa = PBXBuildFile; fileRef = C045168B2723033D00228C03 /* Keys.plist */; };
 		C054C43B269DAFA600BD0DB8 /* TableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */; };
 		C065539627029648001036AF /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C065539527029648001036AF /* ARKit.framework */; };
 		C065539827033EA7001036AF /* ARWorldAnchor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C065539727033EA7001036AF /* ARWorldAnchor.swift */; };
+		C067AB1827239160007C7F90 /* MapboxNavigation in Frameworks */ = {isa = PBXBuildFile; productRef = C067AB1727239160007C7F90 /* MapboxNavigation */; };
+		C067AB1A27239164007C7F90 /* MapboxCoreNavigation in Frameworks */ = {isa = PBXBuildFile; productRef = C067AB1927239164007C7F90 /* MapboxCoreNavigation */; };
 		C098B73D269CB0CF0024D77F /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73C269CB0CF0024D77F /* MapViewController.swift */; };
 		C098B73F269CB8880024D77F /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73E269CB8880024D77F /* TableViewController.swift */; };
 		C0EF9D4726A745F9009CF3E8 /* NearbyInteraction.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */; };
@@ -45,6 +47,7 @@
 
 /* Begin PBXFileReference section */
 		C0154E6D2700EAE9005B9727 /* MPCSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCSession.swift; sourceTree = "<group>"; };
+		C020811B2730F19B0017CD6A /* BluetoothLECentral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothLECentral.swift; sourceTree = "<group>"; };
 		C0395426268DF30600E2ACB9 /* AVA OSM.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AVA OSM.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0395429268DF30600E2ACB9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C039542B268DF30600E2ACB9 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -58,7 +61,6 @@
 		C0395447268DF30800E2ACB9 /* AVA OSMUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AVA OSMUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C039544B268DF30800E2ACB9 /* AVA_OSMUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVA_OSMUITests.swift; sourceTree = "<group>"; };
 		C039544D268DF30800E2ACB9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C045168B2723033D00228C03 /* Keys.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Keys.plist; sourceTree = "<group>"; };
 		C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewCell.swift; sourceTree = "<group>"; };
 		C065539527029648001036AF /* ARKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ARKit.framework; path = System/Library/Frameworks/ARKit.framework; sourceTree = SDKROOT; };
 		C065539727033EA7001036AF /* ARWorldAnchor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARWorldAnchor.swift; sourceTree = "<group>"; };
@@ -77,6 +79,8 @@
 				C065539627029648001036AF /* ARKit.framework in Frameworks */,
 				C0EF9D4726A745F9009CF3E8 /* NearbyInteraction.framework in Frameworks */,
 				C0EF9D4926A74604009CF3E8 /* MultipeerConnectivity.framework in Frameworks */,
+				C067AB1827239160007C7F90 /* MapboxNavigation in Frameworks */,
+				C067AB1A27239164007C7F90 /* MapboxCoreNavigation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -128,12 +132,12 @@
 				C0EF9D4A26A74639009CF3E8 /* TrackerViewController.swift */,
 				C065539727033EA7001036AF /* ARWorldAnchor.swift */,
 				C0154E6D2700EAE9005B9727 /* MPCSession.swift */,
+				C020811B2730F19B0017CD6A /* BluetoothLECentral.swift */,
 				C039542F268DF30600E2ACB9 /* Main.storyboard */,
 				C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */,
 				C0395432268DF30700E2ACB9 /* Assets.xcassets */,
 				C0395434268DF30700E2ACB9 /* LaunchScreen.storyboard */,
 				C0395437268DF30700E2ACB9 /* Info.plist */,
-				C045168B2723033D00228C03 /* Keys.plist */,
 			);
 			path = "AVA OSM";
 			sourceTree = "<group>";
@@ -176,12 +180,17 @@
 				C0395422268DF30600E2ACB9 /* Sources */,
 				C0395423268DF30600E2ACB9 /* Frameworks */,
 				C0395424268DF30600E2ACB9 /* Resources */,
+				C020811D2730F4920017CD6A /* ShellScript */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = "AVA OSM";
+			packageProductDependencies = (
+				C067AB1727239160007C7F90 /* MapboxNavigation */,
+				C067AB1927239164007C7F90 /* MapboxCoreNavigation */,
+			);
 			productName = "AVA OSM";
 			productReference = C0395426268DF30600E2ACB9 /* AVA OSM.app */;
 			productType = "com.apple.product-type.application";
@@ -272,7 +281,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C045168C2723033D00228C03 /* Keys.plist in Resources */,
 				C0395436268DF30700E2ACB9 /* LaunchScreen.storyboard in Resources */,
 				C0395433268DF30700E2ACB9 /* Assets.xcassets in Resources */,
 				C0395431268DF30600E2ACB9 /* Main.storyboard in Resources */,
@@ -295,6 +303,27 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		C020811D2730F4920017CD6A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Look for a global file named 'mapbox' or '.mapbox' within the home directory\ntoken_file=.mapbox\ntoken_file2=mapbox\ntoken=\"$(cat $token_file 2>/dev/null || cat $token_file2 2>/dev/null)\"\nif [ \"$token\" ]; then\n  plutil -replace MBXAccessToken -string $token \"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\nelse\n  echo 'warning: Missing Mapbox access token'\n  open 'https://account.mapbox.com/access-tokens/'\n  echo \"warning: Get an access token from <https://account.mapbox.com/access-tokens/>, then create a new file at $token_file or $token_file2 that contains the access token.\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		C0395422268DF30600E2ACB9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -303,6 +332,7 @@
 				C039542A268DF30600E2ACB9 /* AppDelegate.swift in Sources */,
 				C039542C268DF30600E2ACB9 /* SceneDelegate.swift in Sources */,
 				C054C43B269DAFA600BD0DB8 /* TableViewCell.swift in Sources */,
+				C020811C2730F19B0017CD6A /* BluetoothLECentral.swift in Sources */,
 				C0EF9D4B26A74639009CF3E8 /* TrackerViewController.swift in Sources */,
 				C065539827033EA7001036AF /* ARWorldAnchor.swift in Sources */,
 				C098B73F269CB8880024D77F /* TableViewController.swift in Sources */,
@@ -413,7 +443,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -469,7 +499,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -652,6 +682,19 @@
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C067AB1727239160007C7F90 /* MapboxNavigation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C04516882722461C00228C03 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */;
+			productName = MapboxNavigation;
+		};
+		C067AB1927239164007C7F90 /* MapboxCoreNavigation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C04516882722461C00228C03 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */;
+			productName = MapboxCoreNavigation;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C039541E268DF30600E2ACB9 /* Project object */;
 }

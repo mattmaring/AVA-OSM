@@ -8,6 +8,10 @@
 import UIKit
 import MapKit
 import CoreLocation
+import MapboxDirections
+import MapboxCoreNavigation
+import MapboxNavigation
+import MapboxMaps
 
 // MARK: - Navigation
 struct Navigation: Codable {
@@ -123,25 +127,47 @@ struct NavigationDirection {
     var distance: NavigationDistance
 }
 
+// MARK: - Mapbox style
+class CustomStyle: DayStyle {
+    required init() {
+        super.init()
+        mapStyleURL = URL(string: "mapbox://styles/mapbox/dark-v10")!
+        styleType = .night
+    }
+
+    override func apply() {
+        super.apply()
+        BottomBannerView.appearance().backgroundColor = .black
+    }
+}
+
 // MARK: - MapViewController
 class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
 
     @IBOutlet weak var mapView: MKMapView!
-    @IBOutlet weak var modeText: UILabel!
-    @IBAction func switchMode(_ sender: Any) {
-        if (sender as AnyObject).isOn == true {
-            Debug.sharedInstance.modeText = "User"
-        } else {
-            Debug.sharedInstance.modeText = "Driver"
-        }
+    @IBOutlet weak var container: UIView!
+//    @IBOutlet weak var modeText: UILabel!
+//    @IBAction func switchMode(_ sender: Any) {
+//        if (sender as AnyObject).isOn == true {
+//            Debug.sharedInstance.modeText = "User"
+//        } else {
+//            Debug.sharedInstance.modeText = "Driver"
+//        }
+//    }
+    @IBAction func navigate(_ sender: Any) {
+        container.isHidden = false
+        mapView.isHidden = true
+        updateDirections()
     }
-    @IBOutlet weak var navigationDescription: UILabel!
     
     var locationManager = CLLocationManager()
     var navigationDirections: [NavigationDirection] = []
+    var routeResponse: RouteResponse?
     
     // OpenRouteService API
-    let destination = CLLocationCoordinate2D(latitude: 44.563138, longitude: -69.661305)
+    //let origin = CLLocationCoordinate2D(latitude: 44.896792244693884, longitude: -68.6725158170279)
+    let destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
+    var routeOptions = NavigationRouteOptions(waypoints: [])
     
     // MARK: - viewDidLoad
     override func viewDidLoad() {
@@ -149,6 +175,8 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         
         mapView.delegate = self
         mapView.showsUserLocation = true
+        
+        container.isHidden = true
         
         locationManager.requestAlwaysAuthorization()
         if (CLLocationManager.locationServicesEnabled()) {
@@ -158,9 +186,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
             locationManager.startUpdatingHeading()
         }
         
-        navigationDescription.text = "Calculating route..."
-        
-        updateDirections()
+        //navigationDescription.text = "Calculating route..."
     }
     
     func newJSONDecoder() -> JSONDecoder {
@@ -173,48 +199,50 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     
     // MARK: - updateDirections
     func updateDirections() {
-//        let request = MKDirections.Request()
-//        request.source = MKMapItem.forCurrentLocation()
-//        request.destination = MKMapItem(placemark: MKPlacemark(coordinate: CLLocationCoordinate2D(latitude: 44.563138, longitude: -69.661305)))
-//        request.requestsAlternateRoutes = false
-//        request.transportType = .walking
-//
-//        let directions = MKDirections(request: request)
-//
-//        directions.calculate { [unowned self] response, error in
-//            guard let unwrappedResponse = response else { return }
-//
-//            for route in unwrappedResponse.routes {
-//                mapView.addOverlay(route.polyline)
-//                mapView.setVisibleMapRect(route.polyline.boundingMapRect, animated: true)
-//                navigationDirections = []
-//                for step in route.steps {
-//                    let distance = NavigationDistance(meters: step.distance, feet: step.distance * 3.280839895)
-//                    navigationDirections.append(NavigationDirection(description: step.instructions, distance: distance))
-//                    print(step.instructions, distance.feet)
-//                }
-//
-//            }
-//            navigationDescription.text = navigationDirections.first?.description
-//        }
-        if let curLocation = locationManager.location?.coordinate, let path = Bundle.main.path(forResource: "Keys", ofType: "plist"), let keys = NSDictionary(contentsOfFile: path), let api_key = keys["openrouteservice"] as? String {
-            guard let url = URL(string: "https://api.openrouteservice.org/v2/directions/foot-walking?api_key=\(api_key)&start=\(curLocation.longitude),\(curLocation.latitude)&end=\(destination.longitude),\(destination.latitude)") else { return }
-            var request = URLRequest(url: url)
-            request.addValue("application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8", forHTTPHeaderField: "Accept")
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                if let _ = response, let data = data {
-                    let decoder = JSONDecoder()
-                    if #available(iOS 10.0, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
-                        decoder.dateDecodingStrategy = .iso8601
+        if let curLocation = locationManager.location?.coordinate {
+            let origin = Waypoint(coordinate: curLocation, name: "Current Location")
+            let destination = Waypoint(coordinate: destination, name: "Autonomous Vehicle")
+            routeOptions = NavigationRouteOptions(waypoints: [origin, destination])
+            routeOptions.profileIdentifier = .walking
+            routeOptions.includesAlternativeRoutes = false
+            routeOptions.includesVisualInstructions = true
+            Directions.shared.calculate(routeOptions) { [weak self] (session, result) in
+                switch result {
+                case .failure(let error):
+                    print(error.localizedDescription)
+                case .success(let response):
+                    guard let strongSelf = self else {
+                        return
                     }
-                    let navigation = try? decoder.decode(Navigation.self, from: data)
-                    print(navigation?.bbox)
-                } else {
-                    print(error ?? "error")
+                    strongSelf.routeResponse = response
+                    strongSelf.presentDirections()
                 }
             }
-            task.resume()
         }
+    }
+    
+    func presentDirections() {
+        guard let routeResponse = routeResponse else { return }
+        
+        // For demonstration purposes, simulate locations if the Simulate Navigation option is on.
+        // Since first route is retrieved from response `routeIndex` is set to 0.
+        let navigationService = MapboxNavigationService(routeResponse: routeResponse, routeIndex: 0, routeOptions: routeOptions)
+        let navigationOptions = NavigationOptions(styles: [CustomStyle()], navigationService: navigationService)
+        let navigationViewController = NavigationViewController(for: routeResponse, routeIndex: 0, routeOptions: routeOptions, navigationOptions: navigationOptions)
+        // Render part of the route that has been traversed with full transparency, to give the illusion of a disappearing route.
+        navigationViewController.routeLineTracksTraversal = true
+        
+        navigationViewController.delegate = self
+        addChild(navigationViewController)
+        container.addSubview(navigationViewController.view)
+        navigationViewController.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            navigationViewController.view.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 0),
+            navigationViewController.view.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: 0),
+            navigationViewController.view.topAnchor.constraint(equalTo: container.topAnchor, constant: 0),
+            navigationViewController.view.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: 0)
+        ])
+        self.didMove(toParent: self)
     }
     
     // MARK: - locationManager
@@ -228,5 +256,11 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         renderer.strokeColor = UIColor.blue
         renderer.lineWidth = 2.0
         return renderer
+    }
+}
+
+extension MapViewController: NavigationViewControllerDelegate {
+    func navigationViewControllerDidDismiss(_ navigationViewController: NavigationViewController, byCanceling canceled: Bool) {
+        navigationController?.popViewController(animated: true)
     }
 }
