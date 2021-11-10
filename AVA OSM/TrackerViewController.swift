@@ -13,6 +13,8 @@ import ARKit
 import SceneKit
 import simd
 import MapKit
+import AVFoundation
+import os.log
 
 struct Distance {
     var distance: Float
@@ -31,6 +33,18 @@ extension FloatingPoint {
     var radiansToDegrees: Self { self * 180 / .pi }
 }
 
+enum MessageId: UInt8 {
+    // Messages from the accessory.
+    case accessoryConfigurationData = 0x1
+    case accessoryUwbDidStart = 0x2
+    case accessoryUwbDidStop = 0x3
+
+    // Messages to the accessory.
+    case initialize = 0xA
+    case configureAndStart = 0xB
+    case stop = 0xC
+}
+
 class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDelegate, ARSessionDelegate, CLLocationManagerDelegate {
     
     // MARK: - `IBOutlet` instances
@@ -44,20 +58,25 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     var currentCamera = SCNMatrix4()
     
     // MARK: - Class variables
-    var session: NISession?
-    var sharedTokenWithPeer = false
-    var mpcSession: MPCSession?
-    var connectedPeer: MCPeerID?
-    var peerDiscoveryToken: NIDiscoveryToken?
-    var peerDisplayName: String?
+    var dataChannel = DataCommunicationChannel()
+    var session = NISession()
+    var configuration: NINearbyAccessoryConfiguration?
+    var accessoryConnected = false
+    var uwbConnectionActive = false
+    var arrived = false
+    //var sharedTokenWithPeer = false
+    //var mpcSession: MPCSession?
+    //var connectedPeer: MCPeerID?
+    //var peerDiscoveryToken: NIDiscoveryToken?
+    //var peerDisplayName: String?
     var locationManager = CLLocationManager()
     var circleImageSize = CGSize()
     
-    // MARK: - Data storage
-    var distances: [Distance] = []
-    var directions: [Direction] = []
+    // A mapping from a discovery token to a name.
+    var accessoryMap = [NIDiscoveryToken: String]()
     
     // MARK: - Timer
+    var connectionTimer = Timer()
     var hapticFeedbackTimer: Timer?
     var timeInterval = 0.01
     var timerCounter: Float = 0.0
@@ -68,9 +87,15 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     let CLOSE_RANGE: Float = 0.333
     
     // MARK: - Car location
-    let destination = CLLocation(latitude: 44.564825926200015, longitude: -69.65909124016235) // Example location of vehicle in Davis Parking Lot
+    //let destination = CLLocation(latitude: 44.564825926200015, longitude: -69.65909124016235)
+    let destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
+    // Example location of vehicle in Davis Parking Lot
     var car_distance: Float = 999999.0
-    var car_direction: Float = 999.0
+    var car_direction: Float = 999
+    
+    var distance : Float = 0.0
+    var azimuthVal : Float = 0.0
+    var elevationVal : Float = 0.0
     
     // MARK: - Text formmatting
     let attributes1 = [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 50, weight: UIFont.Weight.bold), NSAttributedString.Key.foregroundColor : UIColor.label] //primary
@@ -135,7 +160,16 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         
         directionDescriptionLabel.attributedText = attributedString1
         
-        initiateSession()
+        // Set a delegate for session updates from the framework.
+        session.delegate = self
+        
+        // Prepare the data communication channel.
+        dataChannel.accessoryConnectedHandler = accessoryConnected
+        dataChannel.accessoryDisconnectedHandler = accessoryDisconnected
+        dataChannel.accessoryDataHandler = accessorySharedData
+        dataChannel.start()
+        
+        connectionTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(restoreSession), userInfo: nil, repeats: true)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -152,6 +186,68 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         blurView.frame = sceneView.bounds
         blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         sceneView.addSubview(blurView)
+    }
+    
+    @objc func restoreSession() {
+        if arrived == false && uwbConnectionActive == false {
+            sendDataToAccessory(Data([MessageId.initialize.rawValue]))
+        } else {
+            connectionTimer.invalidate()
+        }
+    }
+    
+    // MARK: - Data channel methods
+
+    func accessorySharedData(data: Data, accessoryName: String) {
+        // The accessory begins each message with an identifier byte.
+        // Ensure the message length is within a valid range.
+        if data.count < 1 { return }
+
+        // Assign the first byte which is the message identifier.
+        guard let messageId = MessageId(rawValue: data.first!) else {
+            fatalError("\(data.first!) is not a valid MessageId.")
+        }
+
+        // Handle the data portion of the message based on the message identifier.
+        switch messageId {
+        case .accessoryConfigurationData:
+            // Access the message data by skipping the message identifier.
+            assert(data.count > 1)
+            let message = data.advanced(by: 1)
+            setupAccessory(message, name: accessoryName)
+        case .accessoryUwbDidStart:
+            uwbConnectionActive = true
+        case .accessoryUwbDidStop:
+            uwbConnectionActive = false
+        case .configureAndStart:
+            fatalError("Accessory should not send 'configureAndStart'.")
+        case .initialize:
+            fatalError("Accessory should not send 'initialize'.")
+        case .stop:
+            fatalError("Accessory should not send 'stop'.")
+        }
+    }
+
+    func accessoryConnected(name: String) {
+        accessoryConnected = true
+    }
+
+    func accessoryDisconnected() {
+        accessoryConnected = false
+    }
+
+    // MARK: - Accessory messages handling
+
+    func setupAccessory(_ configData: Data, name: String) {
+        do {
+            configuration = try NINearbyAccessoryConfiguration(data: configData)
+        } catch {
+            return
+        }
+
+        // Cache the token to correlate updates with this accessory.
+        cacheToken(configuration!.accessoryDiscoveryToken, accessoryName: name)
+        session.run(configuration!)
     }
     
     // See Haversine formula for calculating bearing between two points:
@@ -225,7 +321,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
             try? stringData.write(to: coreLocationPath!)
         }
         
-        if connectedPeer == nil {
+        if uwbConnectionActive == false {
             if car_distance < CLOSE_RANGE {
                 timeInterval = getTimeInterval(distance: car_distance)
                 if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
@@ -273,94 +369,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         currentCamera = SCNMatrix4(frame.camera.transform)
     }
     
-    func initiateSession() {
-        session = NISession()
-        session?.delegate = self
-        sharedTokenWithPeer = false
-        
-        if connectedPeer != nil && mpcSession != nil {
-            if let myToken = session?.discoveryToken {
-                if !sharedTokenWithPeer {
-                    shareDiscoveryToken(token: myToken)
-                }
-                guard let peerToken = peerDiscoveryToken else {
-                    return
-                }
-                let config = NINearbyPeerConfiguration(peerToken: peerToken)
-                session?.run(config)
-            } else {
-                fatalError("Unable to get self discovery token, is this session invalidated?")
-            }
-        } else {
-            startupMPC()
-        }
-    }
-    
-    // MARK: - Discovery token sharing and receiving using MPC
-
-    func startupMPC() {
-        if mpcSession == nil {
-            mpcSession = MPCSession(service: "avaosm", identity: "cvg.AVA-OSM", maxPeers: 1)
-            mpcSession?.peerConnectedHandler = connectedToPeer
-            mpcSession?.peerDataHandler = dataReceivedHandler
-            mpcSession?.peerDisconnectedHandler = disconnectedFromPeer
-        }
-        mpcSession?.invalidate()
-        mpcSession?.start()
-    }
-    
-    func shareDiscoveryToken(token: NIDiscoveryToken) {
-        guard let encodedData = try? NSKeyedArchiver.archivedData(withRootObject: token, requiringSecureCoding: true) else {
-            fatalError("Unexpectedly failed to encode discovery token.")
-        }
-        mpcSession?.sendDataToAllPeers(data: encodedData)
-        sharedTokenWithPeer = true
-    }
-    
-    func peerDidShareDiscoveryToken(peer: MCPeerID, token: NIDiscoveryToken) {
-        if connectedPeer != peer {
-            fatalError("Received token from unexpected peer.")
-        }
-        // Create a configuration.
-        peerDiscoveryToken = token
-
-        let config = NINearbyPeerConfiguration(peerToken: token)
-
-        // Run the session.
-        session?.run(config)
-    }
-    
-    func connectedToPeer(peer: MCPeerID) {
-        guard let myToken = session?.discoveryToken else {
-            fatalError("Unexpectedly failed to initialize nearby interaction session.")
-        }
-
-        if connectedPeer != nil {
-            fatalError("Already connected to a peer.")
-        }
-
-        if !sharedTokenWithPeer {
-            shareDiscoveryToken(token: myToken)
-        }
-
-        connectedPeer = peer
-        peerDisplayName = peer.displayName
-    }
-
-    func disconnectedFromPeer(peer: MCPeerID) {
-        if connectedPeer == peer {
-            connectedPeer = nil
-            sharedTokenWithPeer = false
-        }
-    }
-
-    func dataReceivedHandler(data: Data, peer: MCPeerID) {
-        guard let discoveryToken = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NIDiscoveryToken.self, from: data) else {
-            fatalError("Unexpectedly failed to decode discovery token.")
-        }
-        peerDidShareDiscoveryToken(peer: peer, token: discoveryToken)
-    }
-    
     // MARK: - Visualizations
     
     func directionNaturalLanguage(degrees: Float) -> (String, String) {
@@ -384,6 +392,14 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     }
     
     func updateVisualization(distance: Float, direction: Float) {
+        if arrived {
+            hapticFeedbackTimer?.invalidate()
+            circleImage.isHidden = true
+            arrowImage.isHidden = true
+            directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Arrived", attributes: attributes1)
+            return
+        }
+        
         if distance != DIST_MAX {
             let distanceFill = String(format: "%0.1f", distance * 3.280839895)
             if distance < CLOSE_RANGE {
@@ -458,22 +474,37 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
         return atan2(direction.z, direction.y) + .pi / 2
     }
     
+    func session(_ session: NISession, didGenerateShareableConfigurationData shareableConfigurationData: Data, for object: NINearbyObject) {
+        guard object.discoveryToken == configuration?.accessoryDiscoveryToken else { return }
+
+        // Prepare to send a message to the accessory.
+        var msg = Data([MessageId.configureAndStart.rawValue])
+        msg.append(shareableConfigurationData)
+
+        //let str = msg.map { String(format: "0x%02x, ", $0) }.joined()
+
+        // Send the message to the accessory.
+        sendDataToAccessory(msg)
+    }
+    
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
-        guard let peerToken = peerDiscoveryToken else {
-            return
-        }
-
-        let peerObj = nearbyObjects.first { (obj) -> Bool in
-            return obj.discoveryToken == peerToken
-        }
-
-        guard let nearbyObjectUpdate = peerObj else {
-            return
-        }
+        guard let accessory = nearbyObjects.first else { return }
+        
+        if !accessoryConnected { return }
+        
+        if arrived { return }
+        
+        print(accessory.distance!, accessory.direction!)
         
         var distance: Float = MAXFLOAT
-        if nearbyObjects.count > 0 {
-            distance = max(0.0, nearbyObjectUpdate.distance!)
+        if let dist = accessory.distance {
+            includeDistance(dist)
+            self.distance = getAvgDistance()
+            distance = self.distance
+            if self.distance == 0.0 {
+                arrived = true
+                sendDataToAccessory(Data([MessageId.stop.rawValue]))
+            }
 //            // Initialization
 //            let process_uncertainty: Float = 0.15
 //            let predicted_estimate: Float = 10.0 // 10m or 29.5276ft, change this value later based on GPS/etc
@@ -495,17 +526,20 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
 //            let prev = nearbyObjects[count - 2].distance!
 //            let variance = (dist - prev) / prev
 //            distance = prev + variance * (dist - prev)
+        } else if uwbConnectionActive {
+            return
         } else {
             distance = DIST_MAX
         }
         
         var direction : Float
         if distance != DIST_MAX {
-            if let dir = nearbyObjects.first?.direction {
-                directions.append(Direction(direction: dir, timestamp: Date()))
+            if let dir = accessory.direction {
+                includeDirection(dir)
+                let directions = getAvgDirection()
                 sceneView.session.setWorldOrigin(relativeTransform: simd_float4x4(currentCamera))
-                let yaw = nearbyObjects.first!.direction.map(azimuth(from:))!
-                let pitch = -nearbyObjects.first!.direction.map(elevation(from:))!
+                let yaw = azimuth(from: directions)
+                let pitch = -elevation(from: directions)
                 nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(distance * 3.280839895), \(yaw.radiansToDegrees), \(pitch.radiansToDegrees)\n"
                 if let stringData = nearbyInteractionOutput.data(using: .utf8) {
                     try? stringData.write(to: nearbyInteractionPath!)
@@ -546,7 +580,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
             }
         }
         
-        if connectedPeer != nil {
+        if uwbConnectionActive == true {
             if distance == DIST_MAX && direction == DIR_MAX {
                 if car_distance < CLOSE_RANGE {
                     timeInterval = getTimeInterval(distance: car_distance)
@@ -594,59 +628,208 @@ class TrackerViewController: UIViewController, NISessionDelegate, ARSCNViewDeleg
     }
 
     func session(_ session: NISession, didRemove nearbyObjects: [NINearbyObject], reason: NINearbyObject.RemovalReason) {
-        guard let peerToken = peerDiscoveryToken else {
-            fatalError("don't have peer token")
-        }
-        
-        let peerObj = nearbyObjects.first { (obj) -> Bool in
-            return obj.discoveryToken == peerToken
-        }
+//        guard let peerToken = peerDiscoveryToken else {
+//            fatalError("don't have peer token")
+//        }
+//
+//        let peerObj = nearbyObjects.first { (obj) -> Bool in
+//            return obj.discoveryToken == peerToken
+//        }
+//
+//        if peerObj == nil {
+//            return
+//        }
+//
+//        switch reason {
+//        case .peerEnded:
+//            peerDiscoveryToken = nil
+//            session.invalidate()
+//            initiateSession()
+//        case .timeout:
+//            if let config = session.configuration {
+//                session.run(config)
+//            }
+//        default:
+//            fatalError("Unknown and unhandled NINearbyObject.RemovalReason")
+//        }
+        // Retry the session only if the peer timed out.
+        guard reason == .timeout else { return }
 
-        if peerObj == nil {
-            return
-        }
+        // The session runs with one accessory.
+        guard let accessory = nearbyObjects.first else { return }
 
-        switch reason {
-        case .peerEnded:
-            peerDiscoveryToken = nil
-            session.invalidate()
-            initiateSession()
-        case .timeout:
-            if let config = session.configuration {
-                session.run(config)
-            }
-        default:
-            fatalError("Unknown and unhandled NINearbyObject.RemovalReason")
+        // Clear the app's accessory state.
+        accessoryMap.removeValue(forKey: accessory.discoveryToken)
+
+        // Consult helper function to decide whether or not to retry.
+        if shouldRetry(accessory) {
+            sendDataToAccessory(Data([MessageId.stop.rawValue]))
+            sendDataToAccessory(Data([MessageId.initialize.rawValue]))
         }
+    }
+    
+    func sessionWasSuspended(_ session: NISession) {
+        sendDataToAccessory(Data([MessageId.stop.rawValue]))
     }
 
     func sessionSuspensionEnded(_ session: NISession) {
-        if let config = self.session?.configuration {
-            session.run(config)
-        } else {
-            initiateSession()
+        sendDataToAccessory(Data([MessageId.initialize.rawValue]))
+    }
+
+//    func sessionSuspensionEnded(_ session: NISession) {
+//        if let config = self.session?.configuration {
+//            session.run(config)
+//        } else {
+//            initiateSession()
+//        }
+//    }
+
+    func session(_ session: NISession, didInvalidateWith error: Error) {
+//        if case NIError.userDidNotAllow = error {
+//            if #available(iOS 15.0, *) {
+//                let accessAlert = UIAlertController(title: "Access Required", message: "AVA OSM requires access to Nearby Interactions to provide accurate navigation to the vehicle.", preferredStyle: .alert)
+//                accessAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+//                accessAlert.addAction(UIAlertAction(title: "Go to Settings", style: .default, handler: {_ in
+//                    if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+//                        UIApplication.shared.open(settingsURL, options: [:], completionHandler: nil)
+//                    }
+//                }))
+//                present(accessAlert, animated: true, completion: nil)
+//            } else {
+//                let accessAlert = UIAlertController(title: "Access Required", message: "Nearby Interactions access required. Restart AVA OSM to allow access.", preferredStyle: .alert)
+//                accessAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+//                present(accessAlert, animated: true, completion: nil)
+//            }
+//            return
+//        }
+//        initiateSession()
+        switch error {
+        case NIError.invalidConfiguration:
+            print("The accessory configuration data is invalid. Please debug it and try again.")
+        case NIError.userDidNotAllow:
+            handleUserDidNotAllow()
+        default:
+            handleSessionInvalidation()
+        }
+    }
+    
+    func sendDataToAccessory(_ data: Data) {
+        do {
+            try dataChannel.sendData(data)
+        } catch {
+            print("Failed to send data to accessory: \(error)")
         }
     }
 
-    func session(_ session: NISession, didInvalidateWith error: Error) {
-        if case NIError.userDidNotAllow = error {
-            if #available(iOS 15.0, *) {
-                let accessAlert = UIAlertController(title: "Access Required", message: "AVA OSM requires access to Nearby Interactions to provide accurate navigation to the vehicle.", preferredStyle: .alert)
-                accessAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-                accessAlert.addAction(UIAlertAction(title: "Go to Settings", style: .default, handler: {_ in
-                    if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(settingsURL, options: [:], completionHandler: nil)
-                    }
-                }))
-                present(accessAlert, animated: true, completion: nil)
-            } else {
-                let accessAlert = UIAlertController(title: "Access Required", message: "Nearby Interactions access required. Restart AVA OSM to allow access.", preferredStyle: .alert)
-                accessAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-                present(accessAlert, animated: true, completion: nil)
-            }
-            return
+    func handleSessionInvalidation() {
+        print("Session invalidated. Restarting.")
+        // Ask the accessory to stop.
+        sendDataToAccessory(Data([MessageId.stop.rawValue]))
+
+        // Replace the invalidated session with a new one.
+        self.session = NISession()
+        self.session.delegate = self
+
+        // Ask the accessory to restart.
+        sendDataToAccessory(Data([MessageId.initialize.rawValue]))
+    }
+
+    func shouldRetry(_ accessory: NINearbyObject) -> Bool {
+        if accessoryConnected {
+            return true
         }
-        initiateSession()
+        return false
+    }
+
+    func cacheToken(_ token: NIDiscoveryToken, accessoryName: String) {
+        accessoryMap[token] = accessoryName
+    }
+
+    func handleUserDidNotAllow() {
+        // Create an alert to request the user go to Settings.
+        let accessAlert = UIAlertController(title: "Access Required",
+                                            message: """
+                                            NIAccessory requires access to Nearby Interactions for this sample app.
+                                            Use this string to explain to users which functionality will be enabled if they change
+                                            Nearby Interactions access in Settings.
+                                            """,
+                                            preferredStyle: .alert)
+        accessAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        accessAlert.addAction(UIAlertAction(title: "Go to Settings", style: .default, handler: {_ in
+            // Navigate the user to the app's settings.
+            if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(settingsURL, options: [:], completionHandler: nil)
+            }
+        }))
+
+        // Preset the access alert.
+        present(accessAlert, animated: true, completion: nil)
     }
 }
+
+// MARK: - Utils.
+var distArray: Array<Float> = Array(repeating: 0, count: 10)
+let zeroVector = simd_make_float3(0, 0, 0)
+var diretArray: Array<simd_float3> = Array(repeating: zeroVector, count: 3)
+var avgDistIndex = 0
+var avgDiretIndex = 0
+
+// Provides the azimuth from an argument 3D directional.
+func azimuth(_ direction: simd_float3) -> Float {
+    return asin(direction.x)
+}
+
+// Provides the elevation from the argument 3D directional.
+func elevation(_ direction: simd_float3) -> Float {
+    return atan2(direction.z, direction.y) + .pi / 2
+}
+
+func includeDistance(_ value: Float) {
+
+    distArray[avgDistIndex] = value
+
+    if avgDistIndex < (distArray.count - 1) {
+        avgDistIndex += 1
+    }
+    else {
+        avgDistIndex = 0
+    }
+}
+
+func getAvgDistance() -> Float {
+    var sumValue: Float
+
+    sumValue = 0
+
+    for value in distArray {
+        sumValue += value
+    }
+
+    return Float(sumValue)/Float(distArray.count)
+}
+
+func includeDirection(_ value: simd_float3) {
+
+    diretArray[avgDiretIndex] = value
+
+    if avgDiretIndex < (diretArray.count - 1) {
+        avgDiretIndex += 1
+    }
+    else {
+        avgDiretIndex = 0
+    }
+}
+
+func getAvgDirection() -> simd_float3 {
+    var sumValue: simd_float3
+
+    sumValue = zeroVector
+
+    for value in diretArray {
+        sumValue += value
+    }
+
+    return simd_float3(sumValue)/Float(diretArray.count)
+}
+
 

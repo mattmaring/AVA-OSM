@@ -175,18 +175,20 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         
         mapView.delegate = self
         mapView.showsUserLocation = true
+        mapView.showsBuildings = true
+        mapView.userTrackingMode = .followWithHeading
         
         container.isHidden = true
         
         locationManager.requestAlwaysAuthorization()
         if (CLLocationManager.locationServicesEnabled()) {
             locationManager.delegate = self
-            locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
+            locationManager.desiredAccuracy = kCLLocationAccuracyBest
             locationManager.startUpdatingLocation()
             locationManager.startUpdatingHeading()
         }
         
-        //navigationDescription.text = "Calculating route..."
+        //mapView.camera = MKMapCamera(lookingAtCenter: locationManager.location!.coordinate, fromDistance: 1.0, pitch: 75.0, heading: locationManager.location!.course)
     }
     
     func newJSONDecoder() -> JSONDecoder {
@@ -224,15 +226,15 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     func presentDirections() {
         guard let routeResponse = routeResponse else { return }
         
-        // For demonstration purposes, simulate locations if the Simulate Navigation option is on.
         // Since first route is retrieved from response `routeIndex` is set to 0.
         let navigationService = MapboxNavigationService(routeResponse: routeResponse, routeIndex: 0, routeOptions: routeOptions)
         let navigationOptions = NavigationOptions(styles: [CustomStyle()], navigationService: navigationService)
         let navigationViewController = NavigationViewController(for: routeResponse, routeIndex: 0, routeOptions: routeOptions, navigationOptions: navigationOptions)
-        // Render part of the route that has been traversed with full transparency, to give the illusion of a disappearing route.
         navigationViewController.routeLineTracksTraversal = true
+        navigationViewController.navigationMapView?.userLocationStyle = .courseView()
         
         navigationViewController.delegate = self
+        
         addChild(navigationViewController)
         container.addSubview(navigationViewController.view)
         navigationViewController.view.translatesAutoresizingMaskIntoConstraints = false
