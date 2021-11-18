@@ -233,6 +233,13 @@ straight ahead</string>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="50"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RWk-XO-OAG">
+                                <rect key="frame" x="71" y="564" width="271" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="LFP-KE-iii"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -264,6 +271,7 @@ straight ahead</string>
                         <outlet property="circleImage" destination="BbK-tp-Ova" id="cUd-vR-bIn"/>
                         <outlet property="directionDescriptionLabel" destination="Dy8-6L-KTt" id="GjW-AF-vvA"/>
                         <outlet property="sceneView" destination="P0A-uA-mAP" id="My8-Yi-dA2"/>
+                        <outlet property="uwb_data" destination="RWk-XO-OAG" id="PYD-ta-tjx"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="oT4-zI-veH" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
