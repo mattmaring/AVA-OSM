@@ -67,7 +67,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     var accessoryConnected = false
     var uwbConnectionActive = false
     var arrived = false
-    var calibration = true
+    var calibrating = true
     var lightTooLow = false
     var locationManager = CLLocationManager()
     var circleImageSize = CGSize()
@@ -191,11 +191,11 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             //sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
         }
         
-//        let blur = UIBlurEffect(style: .regular)
-//        let blurView = UIVisualEffectView(effect: blur)
-//        blurView.frame = sceneView.bounds
-//        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-//        sceneView.addSubview(blurView)
+        let blur = UIBlurEffect(style: .regular)
+        let blurView = UIVisualEffectView(effect: blur)
+        blurView.frame = sceneView.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        sceneView.addSubview(blurView)
     }
     
     @objc func restoreSession() {
@@ -371,12 +371,12 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     func addBox() {
         boxNode.geometry = SCNBox(width: 0.05, height: 0.05, length: 0.05, chamferRadius: 0)
         boxNode.position = SCNVector3(0, 0, 0)
-        boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.white
+        boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.clear
         sceneView.scene.rootNode.addChildNode(boxNode)
     }
     
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        if let lightIntensity = frame.lightEstimate?.ambientIntensity, lightIntensity < 20.0 { //1000 is normal
+        if let lightIntensity = frame.lightEstimate?.ambientIntensity, lightIntensity < 100.0 { //1000 is normal
             lightTooLow = true
         } else {
             lightTooLow = false
@@ -450,6 +450,14 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             circleImage.isHidden = true
             arrowImage.isHidden = true
             directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Light too low", attributes: attributes1)
+            return
+        }
+        
+        if calibrating {
+            hapticFeedbackTimer?.invalidate()
+            circleImage.isHidden = true
+            arrowImage.isHidden = true
+            directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Calibrating", attributes: attributes1)
             return
         }
         
@@ -566,13 +574,18 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         
         if !accessoryConnected { return }
         
-        if arrived { return }
+        //if arrived { return }
         
         if lightTooLow { return }
                 
         storedObject = accessory
         
-        iterations = nearbyObjects.count
+        iterations += 1
+        if iterations < 10 {
+            calibrating = true
+        } else {
+            calibrating = false
+        }
         
         updateObject(accessory: accessory)
     }
@@ -580,10 +593,12 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     func updateObject(accessory: NINearbyObject) {
         if let distance = accessory.distance {
             uwb_distance = distance
-//            if uwb_distance == 0.0 {
-//                arrived = true
-//                sendDataToAccessory(Data([MessageId.stop.rawValue]))
-//            }
+            if uwb_distance == 0.0 {
+                arrived = true
+                //sendDataToAccessory(Data([MessageId.stop.rawValue]))
+            } else {
+                arrived = false
+            }
         } else if !uwbConnectionActive {
             uwb_distance = DIST_MAX
         }
