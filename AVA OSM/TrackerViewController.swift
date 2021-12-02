@@ -181,6 +181,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         let configuration = ARWorldTrackingConfiguration()
         configuration.isLightEstimationEnabled = true
         configuration.worldAlignment = .gravityAndHeading
+        
         configuration.planeDetection = [.horizontal, .vertical]
         
         sceneView.session.run(configuration)
@@ -611,7 +612,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             last_position = pov.position
             
             boxNode.simdEulerAngles = direction
-            boxNode.position = SCNVector3(4, 0, 2)
+            boxNode.position = SCNVector3(0, 0, -2)
             //boxNode.position = SCNVector3(uwb_distance * sin(pov.eulerAngles.y - azimuth), uwb_distance * sin(pov.eulerAngles.x + elevation), -uwb_distance * cos(pov.eulerAngles.y - azimuth))
             //print(pov.eulerAngles.y.radiansToDegrees, -azimuth.radiansToDegrees, boxNode.position)
             sceneView.scene.rootNode.addChildNode(boxNode)
