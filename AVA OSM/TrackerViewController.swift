@@ -54,10 +54,38 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     @IBOutlet weak var sceneView: ARSCNView!
     @IBOutlet weak var uwb_data: UILabel!
     
+    @IBOutlet weak var blurToggle: UISwitch!
+    @IBAction func blurToggle(_ sender: Any) {
+        if blurToggle.isOn {
+            let blur = UIBlurEffect(style: .regular)
+            let blurView = UIVisualEffectView(effect: blur)
+            blurView.frame = sceneView.bounds
+            blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            sceneView.addSubview(blurView)
+        } else {
+            for subview in sceneView.subviews {
+                if subview is UIVisualEffectView {
+                    subview.removeFromSuperview()
+                }
+            }
+        }
+    }
+    
     // MARK: - ARKit variables
     var boxNode = SCNNode()
     let lookingNode = SCNNode()
     var currentCamera = SCNMatrix4()
+    
+    @IBOutlet weak var boxToggle: UISwitch!
+    @IBAction func boxToggle(_ sender: Any) {
+        if boxToggle.isOn {
+            boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.clear
+        } else {
+            boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.white
+        }
+    }
+    
+    @IBOutlet weak var hapticToggle: UISwitch!
     
     // MARK: - Class variables
     var dataChannel = DataCommunicationChannel()
@@ -147,6 +175,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             }
         }
         
+        blurToggle.isOn = true
+        boxToggle.isOn = true
+        hapticToggle.isOn = true
+        
         arrowImage.isHidden = true
         circleImage.isHidden = true
         uwb_data.text = ""
@@ -188,15 +220,15 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         
         addBox()
         
-        if Debug.sharedInstance.modeText == "User" {
-            //sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
-        }
+        //sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
         
-        let blur = UIBlurEffect(style: .regular)
-        let blurView = UIVisualEffectView(effect: blur)
-        blurView.frame = sceneView.bounds
-        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        sceneView.addSubview(blurView)
+        if blurToggle.isOn {
+            let blur = UIBlurEffect(style: .regular)
+            let blurView = UIVisualEffectView(effect: blur)
+            blurView.frame = sceneView.bounds
+            blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            sceneView.addSubview(blurView)
+        }
     }
     
     @objc func restoreSession() {
@@ -275,6 +307,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         return Float(result * 180.0 / Double.pi)
     }
     
+    // MARK: - CoreLocation
+    
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         updateDirections()
     }
@@ -285,6 +319,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             updateObject(accessory: accessory)
         }
     }
+    
+    // MARK: - Update GPS Directions
     
     func updateDirections() {
         // Update distance
@@ -349,6 +385,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
     }
     
+    // MARK: - Haptic Feedback
+    
     func getTimeInterval(distance: Float) -> TimeInterval {
         if distance < CLOSE_RANGE / 8.0 {
             return TimeInterval(0.01)
@@ -369,10 +407,48 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
     }
     
+    @objc func closeTap() {
+        timerCounter += 0.01
+        if timerCounter >= Float(timeInterval) {
+            timerCounter = 0.0
+            var generator : UIImpactFeedbackGenerator
+            switch timeInterval {
+            case TimeInterval(0.01):
+                generator = UIImpactFeedbackGenerator(style: .heavy)
+            case TimeInterval(0.02):
+                generator = UIImpactFeedbackGenerator(style: .heavy)
+            case TimeInterval(0.03):
+                generator = UIImpactFeedbackGenerator(style: .heavy)
+            case TimeInterval(0.04):
+                generator = UIImpactFeedbackGenerator(style: .medium)
+            case TimeInterval(0.05):
+                generator = UIImpactFeedbackGenerator(style: .medium)
+            case TimeInterval(0.06):
+                generator = UIImpactFeedbackGenerator(style: .medium)
+            case TimeInterval(0.07):
+                generator = UIImpactFeedbackGenerator(style: .light)
+            case TimeInterval(0.08):
+                generator = UIImpactFeedbackGenerator(style: .light)
+            default:
+                generator = UIImpactFeedbackGenerator(style: .light)
+            }
+            
+            if hapticToggle.isOn {
+                generator.impactOccurred()
+            }
+        }
+    }
+    
+    // MARK: - ARSession
+    
     func addBox() {
         boxNode.geometry = SCNBox(width: 0.05, height: 0.05, length: 0.05, chamferRadius: 0)
         boxNode.position = SCNVector3(0, 0, 0)
-        boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.clear
+        if boxToggle.isOn {
+            boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.clear
+        } else {
+            boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.white
+        }
         sceneView.scene.rootNode.addChildNode(boxNode)
     }
     
@@ -463,7 +539,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
         
         if distance != DIST_MAX {
-            let distanceFill = String(format: "%0.2f", distance * 3.280839895)
+            let distanceFill = String(format: "%0.1f", distance * 3.280839895)
             if distance < CLOSE_RANGE {
                 let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
                 let attributedString2 = NSMutableAttributedString(string: "ft\n", attributes: attributes2)
@@ -516,13 +592,20 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
     }
     
-    @objc func closeTap() {
-        timerCounter += 0.01
-        if timerCounter >= Float(timeInterval) {
-            timerCounter = 0.0
-            let generator = UIImpactFeedbackGenerator(style: .heavy)
-            generator.impactOccurred()
-        }
+    func get3DPosition(pov: SCNVector3, azimuth: Float, elevation: Float, distance: Float) -> SCNVector3 {
+        let pitch = pov.x + elevation
+        let yaw = -pov.y + azimuth
+        
+        print(-pov.y.radiansToDegrees, azimuth.radiansToDegrees, yaw.radiansToDegrees)
+        //print(pov.x.radiansToDegrees, elevation.radiansToDegrees, pitch.radiansToDegrees)
+        
+        let y = uwb_distance * sin(pitch)
+        let _uwb_distance = sqrt(uwb_distance * uwb_distance - y * y)
+        let x = _uwb_distance * sin(yaw)
+        let z = -_uwb_distance * cos(yaw)
+        //print(x, y, z)
+        return SCNVector3(x, y, z)
+        // SCNVector3(uwb_distance * sin(pov.eulerAngles.y + azimuth), uwb_distance * sin(pov.eulerAngles.x + elevation), -uwb_distance * cos(pov.eulerAngles.y + azimuth))
     }
     
     // MARK: - NISessionDelegate
@@ -591,6 +674,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         updateObject(accessory: accessory)
     }
     
+    // MARK: - Update NINearbyObject
+    
     func updateObject(accessory: NINearbyObject) {
         if let distance = accessory.distance {
             uwb_distance = distance
@@ -604,16 +689,20 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             uwb_distance = DIST_MAX
         }
         
-        if let direction = accessory.direction {
+        if let direction = accessory.direction, uwb_distance > CLOSE_RANGE {
             let azimuth = azimuth(from: direction)
             let elevation = elevation(from: direction)
             
+            //if abs(azimuth.radiansToDegrees) > 20.0 { return }
+            //if abs(elevation.radiansToDegrees) > 20.0 { return }
+            guard let camera = sceneView.session.currentFrame?.camera else { return }
             guard let pov = sceneView.pointOfView else { return }
             last_position = pov.position
             
             boxNode.simdEulerAngles = direction
-            boxNode.position = SCNVector3(0, 0, -2)
-            //boxNode.position = SCNVector3(uwb_distance * sin(pov.eulerAngles.y - azimuth), uwb_distance * sin(pov.eulerAngles.x + elevation), -uwb_distance * cos(pov.eulerAngles.y - azimuth))
+            //boxNode.position = SCNVector3(0, 0, -2)
+            boxNode.position = get3DPosition(pov: SCNVector3(x: camera.eulerAngles.x, y: camera.eulerAngles.y, z: camera.eulerAngles.z), azimuth: azimuth, elevation: elevation, distance: uwb_distance)
+            
             //print(pov.eulerAngles.y.radiansToDegrees, -azimuth.radiansToDegrees, boxNode.position)
             sceneView.scene.rootNode.addChildNode(boxNode)
             
@@ -820,6 +909,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             handleSessionInvalidation()
         }
     }
+    
+    // MARK: - Communication Handlers
     
     func sendDataToAccessory(_ data: Data) {
         do {
