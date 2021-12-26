@@ -412,27 +412,28 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         if timerCounter >= Float(timeInterval) {
             timerCounter = 0.0
             var generator : UIImpactFeedbackGenerator
-            switch timeInterval {
-            case TimeInterval(0.01):
-                generator = UIImpactFeedbackGenerator(style: .heavy)
-            case TimeInterval(0.02):
-                generator = UIImpactFeedbackGenerator(style: .heavy)
-            case TimeInterval(0.03):
-                generator = UIImpactFeedbackGenerator(style: .heavy)
-            case TimeInterval(0.04):
-                generator = UIImpactFeedbackGenerator(style: .medium)
-            case TimeInterval(0.05):
-                generator = UIImpactFeedbackGenerator(style: .medium)
-            case TimeInterval(0.06):
-                generator = UIImpactFeedbackGenerator(style: .medium)
-            case TimeInterval(0.07):
-                generator = UIImpactFeedbackGenerator(style: .light)
-            case TimeInterval(0.08):
-                generator = UIImpactFeedbackGenerator(style: .light)
-            default:
-                generator = UIImpactFeedbackGenerator(style: .light)
-            }
-            
+            generator = UIImpactFeedbackGenerator(style: .heavy)
+//            switch timeInterval {
+//            case TimeInterval(0.01):
+//                generator = UIImpactFeedbackGenerator(style: .heavy)
+//            case TimeInterval(0.02):
+//                generator = UIImpactFeedbackGenerator(style: .heavy)
+//            case TimeInterval(0.03):
+//                generator = UIImpactFeedbackGenerator(style: .heavy)
+//            case TimeInterval(0.04):
+//                generator = UIImpactFeedbackGenerator(style: .medium)
+//            case TimeInterval(0.05):
+//                generator = UIImpactFeedbackGenerator(style: .medium)
+//            case TimeInterval(0.06):
+//                generator = UIImpactFeedbackGenerator(style: .medium)
+//            case TimeInterval(0.07):
+//                generator = UIImpactFeedbackGenerator(style: .light)
+//            case TimeInterval(0.08):
+//                generator = UIImpactFeedbackGenerator(style: .light)
+//            default:
+//                generator = UIImpactFeedbackGenerator(style: .light)
+//            }
+//
             if hapticToggle.isOn {
                 generator.impactOccurred()
             }
@@ -539,7 +540,11 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
         
         if distance != DIST_MAX {
-            let distanceFill = String(format: "%0.1f", distance * 3.280839895)
+            var format = "%0.0f"
+            if distance < CLOSE_RANGE {
+                format = "%0.1f"
+            }
+            let distanceFill = String(format: format, distance * 3.280839895)
             if distance < CLOSE_RANGE {
                 let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
                 let attributedString2 = NSMutableAttributedString(string: "ft\n", attributes: attributes2)
@@ -593,19 +598,20 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     }
     
     func get3DPosition(pov: SCNVector3, azimuth: Float, elevation: Float, distance: Float) -> SCNVector3 {
+        // SCNVector3(uwb_distance * sin(pov.eulerAngles.y + azimuth), uwb_distance * sin(pov.eulerAngles.x + elevation), -uwb_distance * cos(pov.eulerAngles.y + azimuth))
+        
         let pitch = pov.x + elevation
         let yaw = -pov.y + azimuth
         
-        print(-pov.y.radiansToDegrees, azimuth.radiansToDegrees, yaw.radiansToDegrees)
+        //uwb_data.text = "\(round(-pov.y.radiansToDegrees)) | \(round(azimuth.radiansToDegrees)) | \(round(yaw.radiansToDegrees))"
         //print(pov.x.radiansToDegrees, elevation.radiansToDegrees, pitch.radiansToDegrees)
         
         let y = uwb_distance * sin(pitch)
         let _uwb_distance = sqrt(uwb_distance * uwb_distance - y * y)
         let x = _uwb_distance * sin(yaw)
         let z = -_uwb_distance * cos(yaw)
-        //print(x, y, z)
+        
         return SCNVector3(x, y, z)
-        // SCNVector3(uwb_distance * sin(pov.eulerAngles.y + azimuth), uwb_distance * sin(pov.eulerAngles.x + elevation), -uwb_distance * cos(pov.eulerAngles.y + azimuth))
     }
     
     // MARK: - NISessionDelegate
@@ -689,19 +695,17 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             uwb_distance = DIST_MAX
         }
         
-        if let direction = accessory.direction, uwb_distance > CLOSE_RANGE {
+        if let direction = accessory.direction, uwb_distance > CLOSE_RANGE && abs(azimuth(from: direction).radiansToDegrees) < 20.0 && abs(elevation(from: direction).radiansToDegrees) < 20.0 {
             let azimuth = azimuth(from: direction)
             let elevation = elevation(from: direction)
             
-            //if abs(azimuth.radiansToDegrees) > 20.0 { return }
-            //if abs(elevation.radiansToDegrees) > 20.0 { return }
             guard let camera = sceneView.session.currentFrame?.camera else { return }
             guard let pov = sceneView.pointOfView else { return }
             last_position = pov.position
             
             boxNode.simdEulerAngles = direction
-            //boxNode.position = SCNVector3(0, 0, -2)
-            boxNode.position = get3DPosition(pov: SCNVector3(x: camera.eulerAngles.x, y: camera.eulerAngles.y, z: camera.eulerAngles.z), azimuth: azimuth, elevation: elevation, distance: uwb_distance)
+            boxNode.position = SCNVector3(0, 0, -2)
+            //boxNode.position = get3DPosition(pov: SCNVector3(x: camera.eulerAngles.x, y: camera.eulerAngles.y, z: camera.eulerAngles.z), azimuth: azimuth, elevation: elevation, distance: uwb_distance)
             
             //print(pov.eulerAngles.y.radiansToDegrees, -azimuth.radiansToDegrees, boxNode.position)
             sceneView.scene.rootNode.addChildNode(boxNode)
@@ -710,68 +714,105 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             uwb_pitch = elevation.radiansToDegrees
             //print(uwb_distance, uwb_yaw, uwb_pitch)
             
-            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw), \(uwb_pitch)\n"
-            if let stringData = nearbyInteractionOutput.data(using: .utf8) {
-                try? stringData.write(to: nearbyInteractionPath!)
-            }
+//            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw), \(uwb_pitch)\n"
+//            if let stringData = nearbyInteractionOutput.data(using: .utf8) {
+//                try? stringData.write(to: nearbyInteractionPath!)
+//            }
         } else if boxNode.transform.m41 != 0.0 || boxNode.transform.m42 != 0.0 || boxNode.transform.m43 != 0.0 {
             guard let camera = sceneView.session.currentFrame?.camera else { return }
             guard let position = sceneView.pointOfView?.position else { return }
 
-            let deltax = position.x - last_position.x
-            let dist = boxNode.position.z - position.z
-
-            // Need to examine this
-            var angle : Float
-            if dist < 0 {
-                angle = atan(-deltax / dist)
-            } else if dist > 0 {
-                angle = atan(deltax / dist)
-            } else {
-                angle = 0.0
-            }
-
+            //uwb_data.text = "\(position.x) | \(boxNode.position.x)"
+            
+            /* Digram - 2D direction field
+                            (N | z-)
+                               |
+                               |
+                         IV    |    I
+                               |
+            (W | x-) ——————————+—————————— (E | x+)
+                               |
+                        III    |    II
+                               |
+                               |
+                            (S | z+)
+             */
+            
+            // Example cases
+            // Position = (-2, -1)
+            // Node = (1, 1)
+            
+            // Check direction scenarios
             var move_angle : Float
-            if boxNode.position.z < 0 {
-                move_angle = atan(boxNode.position.x / boxNode.position.z)
-            } else if boxNode.position.z > 0 {
-                if boxNode.position.x < 0 {
-                    move_angle = .pi + atan(boxNode.position.x / boxNode.position.z)
-                } else if boxNode.position.x > 0 {
-                    move_angle = -.pi + atan(boxNode.position.x / boxNode.position.z)
-                } else {
-                    move_angle = .pi
-                }
+            if position.x < boxNode.position.x {
+                let dz = boxNode.position.z - position.z
+                let dx = boxNode.position.x - position.x
+                move_angle = atan(dz / dx) + .pi / 2.0
+            } else if position.x > boxNode.position.x {
+                let dz = boxNode.position.z - position.z
+                let dx = boxNode.position.x - position.x
+                move_angle = atan(dz / dx) - .pi / 2.0
             } else {
-                // Handle divide by 0
-                if boxNode.position.x < 0 {
-                    move_angle = .pi / 2.0
-                } else if boxNode.position.x > 0 {
-                    move_angle = -.pi / 2.0
-                } else {
+                if position.z < boxNode.position.z {
+                    move_angle = .pi
+                } else if position.z > boxNode.position.z {
                     move_angle = 0.0
+                } else {
+                    move_angle = 0.0 // Filler value
                 }
             }
             
-            var yaw = angle.radiansToDegrees + camera.eulerAngles.y.radiansToDegrees - move_angle.radiansToDegrees
+//            // Need to examine this
+//            var angle : Float
+//            if dist < 0 {
+//                angle = atan(-deltax / dist)
+//            } else if dist > 0 {
+//                angle = atan(deltax / dist)
+//            } else {
+//                angle = 0.0
+//            }
+//
+//            var move_angle : Float
+//            if boxNode.position.z < 0 {
+//                move_angle = atan(boxNode.position.x / boxNode.position.z)
+//            } else if boxNode.position.z > 0 {
+//                if boxNode.position.x < 0 {
+//                    move_angle = .pi + atan(boxNode.position.x / boxNode.position.z)
+//                } else if boxNode.position.x > 0 {
+//                    move_angle = -.pi + atan(boxNode.position.x / boxNode.position.z)
+//                } else {
+//                    move_angle = .pi
+//                }
+//            } else {
+//                // Handle divide by 0
+//                if boxNode.position.x < 0 {
+//                    move_angle = .pi / 2.0
+//                } else if boxNode.position.x > 0 {
+//                    move_angle = -.pi / 2.0
+//                } else {
+//                    move_angle = 0.0
+//                }
+//            }
+            
+            var yaw = move_angle.radiansToDegrees + camera.eulerAngles.y.radiansToDegrees
             if yaw <= -180.0 {
                 yaw += 360.0
             } else if yaw > 180.0 {
                 yaw -= 360.0
             }
             uwb_yaw = yaw
-            //uwb_data.text = "\(angle.radiansToDegrees) | \(camera.eulerAngles.y.radiansToDegrees)"
+            //uwb_data.text = "\(move_angle.radiansToDegrees) | \(camera.eulerAngles.y.radiansToDegrees)"
 
-            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw), \(uwb_pitch)\n"
-            if let stringData = nearbyInteractionOutput.data(using: .utf8) {
-                try? stringData.write(to: nearbyInteractionPath!)
-            }
+//            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw), \(uwb_pitch)\n"
+//            if let stringData = nearbyInteractionOutput.data(using: .utf8) {
+//                try? stringData.write(to: nearbyInteractionPath!)
+//            }
         } else if !uwbConnectionActive {
             uwb_yaw = YAW_MAX
-            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), nil, nil\n"
-            if let stringData = nearbyInteractionOutput.data(using: .utf8) {
-                try? stringData.write(to: nearbyInteractionPath!)
-            }
+//            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), nil, nil\n"
+//            if let stringData = nearbyInteractionOutput.data(using: .utf8) {
+//                try? stringData.write(to: nearbyInteractionPath!)
+//            }
         }
         
         if uwbConnectionActive == true {

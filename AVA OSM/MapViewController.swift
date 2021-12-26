@@ -137,7 +137,7 @@ class CustomStyle: DayStyle {
 
     override func apply() {
         super.apply()
-        BottomBannerView.appearance().backgroundColor = .black
+        //BottomBannerView.appearance().backgroundColor = .black
     }
 }
 
@@ -167,6 +167,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     // OpenRouteService API
     //let origin = CLLocationCoordinate2D(latitude: 44.896792244693884, longitude: -68.6725158170279)
     let destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
+    //let destination = CLLocationCoordinate2D(latitude: 44.90012957373266, longitude: -68.67127501997854)
     var routeOptions = NavigationRouteOptions(waypoints: [])
     
     // MARK: - viewDidLoad

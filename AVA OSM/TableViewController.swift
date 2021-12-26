@@ -83,6 +83,7 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
     
     // Car location
     let destination = CLLocation(latitude: 44.563138, longitude: -69.661305) // Example location of vehicle in Eustis Parking Lot
+    //let destination = CLLocation(latitude: 44.90012957373266, longitude: -68.67127501997854)
     var car_distance = 999999.0
     var car_direction = 999.0
     
@@ -128,6 +129,13 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
         let right : Double = location.longitude + 0.005
         let top : Double = location.latitude + 0.005
         queryDataInBounds(left: left, bottom: bottom, right: right, top: top)
+    }
+    
+    func viewWillDisappear() {
+        super.viewWillDisappear(true)
+        
+        locationManager.stopUpdatingHeading()
+        locationManager.stopUpdatingLocation()
     }
     
     // Check if the area is less than 0.25
@@ -463,6 +471,7 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
                 cell.descriptiveName.text = connect.value
                 
                 if units == Units.imperial && distance < DIST_MAX {
+                    // add miles here
                     cell.distance.text = "\(roundFeet(distance: distance * 3.28083)) ft"
                 } else if units == Units.metric && distance < DIST_MAX {
                     cell.distance.text = "\(Int(distance)) m"
