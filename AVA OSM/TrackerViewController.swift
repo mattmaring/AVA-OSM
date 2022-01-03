@@ -95,7 +95,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     var accessoryConnected = false
     var uwbConnectionActive = false
     var arrived = false
-    var calibrating = true
+    var searching = true
+    var calibrating = false
     var lightTooLow = false
     var locationManager = CLLocationManager()
     var circleImageSize = CGSize()
@@ -407,33 +408,18 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
     }
     
+    @objc func pointingTap() {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        if hapticToggle.isOn {
+            generator.impactOccurred()
+        }
+    }
+    
     @objc func closeTap() {
         timerCounter += 0.01
         if timerCounter >= Float(timeInterval) {
             timerCounter = 0.0
-            var generator : UIImpactFeedbackGenerator
-            generator = UIImpactFeedbackGenerator(style: .heavy)
-//            switch timeInterval {
-//            case TimeInterval(0.01):
-//                generator = UIImpactFeedbackGenerator(style: .heavy)
-//            case TimeInterval(0.02):
-//                generator = UIImpactFeedbackGenerator(style: .heavy)
-//            case TimeInterval(0.03):
-//                generator = UIImpactFeedbackGenerator(style: .heavy)
-//            case TimeInterval(0.04):
-//                generator = UIImpactFeedbackGenerator(style: .medium)
-//            case TimeInterval(0.05):
-//                generator = UIImpactFeedbackGenerator(style: .medium)
-//            case TimeInterval(0.06):
-//                generator = UIImpactFeedbackGenerator(style: .medium)
-//            case TimeInterval(0.07):
-//                generator = UIImpactFeedbackGenerator(style: .light)
-//            case TimeInterval(0.08):
-//                generator = UIImpactFeedbackGenerator(style: .light)
-//            default:
-//                generator = UIImpactFeedbackGenerator(style: .light)
-//            }
-//
+            let generator = UIImpactFeedbackGenerator(style: .heavy)
             if hapticToggle.isOn {
                 generator.impactOccurred()
             }
@@ -519,23 +505,25 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             hapticFeedbackTimer?.invalidate()
             circleImage.isHidden = true
             arrowImage.isHidden = true
-            directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Arrived", attributes: attributes1)
+            directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Arrived at car", attributes: attributes1)
             return
-        }
-        
-        if lightTooLow {
+        } else if lightTooLow {
             hapticFeedbackTimer?.invalidate()
             circleImage.isHidden = true
             arrowImage.isHidden = true
             directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Light too low", attributes: attributes1)
             return
-        }
-        
-        if calibrating {
+        } else if calibrating {
             hapticFeedbackTimer?.invalidate()
             circleImage.isHidden = true
             arrowImage.isHidden = true
             directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Calibrating", attributes: attributes1)
+            return
+        } else if searching {
+            hapticFeedbackTimer?.invalidate()
+            circleImage.isHidden = true
+            arrowImage.isHidden = true
+            directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Searching for car", attributes: attributes1)
             return
         }
         
@@ -657,6 +645,9 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
 
         // Send the message to the accessory.
         sendDataToAccessory(msg)
+        
+        calibrating = true
+        searching = false
     }
     
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
@@ -688,6 +679,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             if uwb_distance == 0.0 {
                 arrived = true
                 //sendDataToAccessory(Data([MessageId.stop.rawValue]))
+                // Don't stop sending data until confirmation of arrival is made (use cancel or confirmation of arrival button)
             } else {
                 arrived = false
             }
@@ -707,12 +699,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             boxNode.position = SCNVector3(0, 0, -2)
             //boxNode.position = get3DPosition(pov: SCNVector3(x: camera.eulerAngles.x, y: camera.eulerAngles.y, z: camera.eulerAngles.z), azimuth: azimuth, elevation: elevation, distance: uwb_distance)
             
-            //print(pov.eulerAngles.y.radiansToDegrees, -azimuth.radiansToDegrees, boxNode.position)
             sceneView.scene.rootNode.addChildNode(boxNode)
             
             uwb_yaw = azimuth.radiansToDegrees
             uwb_pitch = elevation.radiansToDegrees
-            //print(uwb_distance, uwb_yaw, uwb_pitch)
             
 //            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw), \(uwb_pitch)\n"
 //            if let stringData = nearbyInteractionOutput.data(using: .utf8) {
@@ -739,8 +729,20 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
              */
             
             // Example cases
-            // Position = (-2, -1)
-            // Node = (1, 1)
+            
+            // Position = (-2, -1); Node = (1, 1)
+            // ∆X = 3; ∆Y = 2
+            // Angle = atan(∆Y/∆X)
+            //       = atan(2/3)
+            //         = 33.7º
+            // Should be 33.7º + 90.0º = 123.7º
+            
+            // Position = (1, 1); Node = (-2, -1)
+            // ∆X = -3; ∆Y = -2
+            // Angle = atan(∆Y/∆X)
+            //       = atan(2/3)
+            //         = 33.7º
+            // Should be 33.7º - 90.0º = -56.3º
             
             // Check direction scenarios
             var move_angle : Float
@@ -753,54 +755,21 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 let dx = boxNode.position.x - position.x
                 move_angle = atan(dz / dx) - .pi / 2.0
             } else {
+                // Catch divide by zero errors
                 if position.z < boxNode.position.z {
                     move_angle = .pi
-                } else if position.z > boxNode.position.z {
-                    move_angle = 0.0
                 } else {
-                    move_angle = 0.0 // Filler value
+                    move_angle = 0.0
                 }
             }
             
-//            // Need to examine this
-//            var angle : Float
-//            if dist < 0 {
-//                angle = atan(-deltax / dist)
-//            } else if dist > 0 {
-//                angle = atan(deltax / dist)
-//            } else {
-//                angle = 0.0
-//            }
-//
-//            var move_angle : Float
-//            if boxNode.position.z < 0 {
-//                move_angle = atan(boxNode.position.x / boxNode.position.z)
-//            } else if boxNode.position.z > 0 {
-//                if boxNode.position.x < 0 {
-//                    move_angle = .pi + atan(boxNode.position.x / boxNode.position.z)
-//                } else if boxNode.position.x > 0 {
-//                    move_angle = -.pi + atan(boxNode.position.x / boxNode.position.z)
-//                } else {
-//                    move_angle = .pi
-//                }
-//            } else {
-//                // Handle divide by 0
-//                if boxNode.position.x < 0 {
-//                    move_angle = .pi / 2.0
-//                } else if boxNode.position.x > 0 {
-//                    move_angle = -.pi / 2.0
-//                } else {
-//                    move_angle = 0.0
-//                }
-//            }
-            
-            var yaw = move_angle.radiansToDegrees + camera.eulerAngles.y.radiansToDegrees
-            if yaw <= -180.0 {
-                yaw += 360.0
-            } else if yaw > 180.0 {
-                yaw -= 360.0
+            var yaw = move_angle + camera.eulerAngles.y
+            if yaw <= -.pi {
+                yaw += 2 * .pi
+            } else if yaw > .pi {
+                yaw -= 2 * .pi
             }
-            uwb_yaw = yaw
+            uwb_yaw = yaw.radiansToDegrees
             //uwb_data.text = "\(move_angle.radiansToDegrees) | \(camera.eulerAngles.y.radiansToDegrees)"
 
 //            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw), \(uwb_pitch)\n"
@@ -923,24 +892,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
 //    }
 
     func session(_ session: NISession, didInvalidateWith error: Error) {
-//        if case NIError.userDidNotAllow = error {
-//            if #available(iOS 15.0, *) {
-//                let accessAlert = UIAlertController(title: "Access Required", message: "AVA OSM requires access to Nearby Interactions to provide accurate navigation to the vehicle.", preferredStyle: .alert)
-//                accessAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-//                accessAlert.addAction(UIAlertAction(title: "Go to Settings", style: .default, handler: {_ in
-//                    if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-//                        UIApplication.shared.open(settingsURL, options: [:], completionHandler: nil)
-//                    }
-//                }))
-//                present(accessAlert, animated: true, completion: nil)
-//            } else {
-//                let accessAlert = UIAlertController(title: "Access Required", message: "Nearby Interactions access required. Restart AVA OSM to allow access.", preferredStyle: .alert)
-//                accessAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-//                present(accessAlert, animated: true, completion: nil)
-//            }
-//            return
-//        }
-//        initiateSession()
         switch error {
         case NIError.invalidConfiguration:
             print("The accessory configuration data is invalid. Please debug it and try again.")
@@ -987,13 +938,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
 
     func handleUserDidNotAllow() {
         // Create an alert to request the user go to Settings.
-        let accessAlert = UIAlertController(title: "Access Required",
-                                            message: """
-                                            NIAccessory requires access to Nearby Interactions for this sample app.
-                                            Use this string to explain to users which functionality will be enabled if they change
-                                            Nearby Interactions access in Settings.
-                                            """,
-                                            preferredStyle: .alert)
+        let accessAlert = UIAlertController(title: "Access Required", message: "NIAccessory requires access to Nearby Interactions for this sample app. Use this string to explain to users which functionality will be enabled if they change Nearby Interactions access in Settings.", preferredStyle: .alert)
         accessAlert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         accessAlert.addAction(UIAlertAction(title: "Go to Settings", style: .default, handler: {_ in
             // Navigate the user to the app's settings.
@@ -1007,7 +952,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     }
 }
 
-// MARK: - Utils.
+// MARK: - Utilities.
 var distArray: Array<Float> = Array(repeating: 0, count: 10)
 let zeroVector = simd_make_float3(0, 0, 0)
 var diretArray: Array<simd_float3> = Array(repeating: zeroVector, count: 10)
@@ -1025,9 +970,7 @@ func elevation(_ direction: simd_float3) -> Float {
 }
 
 func includeDistance(_ value: Float) {
-
     distArray[avgDistIndex] = value
-
     if avgDistIndex < (distArray.count - 1) {
         avgDistIndex += 1
     }
@@ -1038,20 +981,15 @@ func includeDistance(_ value: Float) {
 
 func getAvgDistance() -> Float {
     var sumValue: Float
-
     sumValue = 0
-
     for value in distArray {
         sumValue += value
     }
-
     return Float(sumValue)/Float(distArray.count)
 }
 
 func includeDirection(_ value: simd_float3) {
-
     diretArray[avgDiretIndex] = value
-
     if avgDiretIndex < (diretArray.count - 1) {
         avgDiretIndex += 1
     }
@@ -1062,13 +1000,10 @@ func includeDirection(_ value: simd_float3) {
 
 func getAvgDirection() -> simd_float3 {
     var sumValue: simd_float3
-
     sumValue = zeroVector
-
     for value in diretArray {
         sumValue += value
     }
-
     return simd_float3(sumValue)/Float(diretArray.count)
 }
 

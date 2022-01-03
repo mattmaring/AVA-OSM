@@ -22,6 +22,7 @@
                                 <constraints>
                                     <constraint firstAttribute="height" constant="79" id="uCX-y3-37P"/>
                                 </constraints>
+                                <color key="tintColor" systemColor="secondaryLabelColor"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Navigate"/>
                                 <connections>
@@ -203,6 +204,10 @@
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="xmark.circle.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="CgR-BD-Aqs">
                                 <rect key="frame" x="20" y="717.5" width="75" height="75"/>
                                 <color key="tintColor" systemColor="secondaryLabelColor"/>
+                                <accessibility key="accessibilityConfiguration" label="cancel navigation to vehicle">
+                                    <accessibilityTraits key="traits" button="YES"/>
+                                    <bool key="isElement" value="YES"/>
+                                </accessibility>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="75" id="0zD-lS-0qe"/>
                                     <constraint firstAttribute="height" constant="76" id="2KC-5A-ZRD"/>
@@ -211,6 +216,9 @@
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="car.circle.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="Cx6-g3-se4">
                                 <rect key="frame" x="319" y="717.5" width="75" height="75"/>
                                 <color key="tintColor" systemColor="secondaryLabelColor"/>
+                                <accessibility key="accessibilityConfiguration" label="honk vehicle horn">
+                                    <accessibilityTraits key="traits" button="YES"/>
+                                </accessibility>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="76" id="UdM-h7-dgA"/>
                                     <constraint firstAttribute="width" constant="75" id="jxR-0x-WTM"/>
@@ -219,14 +227,19 @@
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" image="arrow.up" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="Z9y-et-QOq">
                                 <rect key="frame" x="20" y="185" width="374" height="380"/>
                                 <color key="tintColor" systemColor="labelColor"/>
+                                <accessibility key="accessibilityConfiguration" label="direction arrow"/>
                             </imageView>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" image="circle.fill" catalog="system" id="BbK-tp-Ova">
                                 <rect key="frame" x="20" y="185" width="374" height="380"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="tintColor" systemColor="labelColor"/>
+                                <accessibility key="accessibilityConfiguration" label="visual distance feedback"/>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Dy8-6L-KTt" userLabel="Direction Description">
                                 <rect key="frame" x="20" y="586" width="374" height="119.5"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" staticText="YES" updatesFrequently="YES"/>
+                                </accessibility>
                                 <string key="text">20 ft
 straight ahead</string>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="50"/>
@@ -235,24 +248,37 @@ straight ahead</string>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RWk-XO-OAG">
                                 <rect key="frame" x="71" y="564" width="271" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" staticText="YES" updatesFrequently="YES"/>
+                                    <bool key="isElement" value="NO"/>
+                                </accessibility>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" title="Debug" translatesAutoresizingMaskIntoConstraints="NO" id="M34-tE-G7g">
                                 <rect key="frame" x="343" y="60" width="51" height="31"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <bool key="isElement" value="NO"/>
+                                </accessibility>
                                 <connections>
                                     <action selector="blurToggle:" destination="FuV-T6-22f" eventType="valueChanged" id="e4v-LL-5Kw"/>
                                 </connections>
                             </switch>
                             <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="3Bl-8s-jE6">
                                 <rect key="frame" x="343" y="99" width="51" height="31"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <bool key="isElement" value="NO"/>
+                                </accessibility>
                                 <connections>
                                     <action selector="boxToggle:" destination="FuV-T6-22f" eventType="valueChanged" id="ab2-bx-YDD"/>
                                 </connections>
                             </switch>
                             <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="iK9-tE-Dt0">
                                 <rect key="frame" x="343" y="138" width="51" height="31"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <bool key="isElement" value="NO"/>
+                                </accessibility>
                             </switch>
                             <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Blur" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5tk-GS-2Dm">
                                 <rect key="frame" x="304" y="65" width="31" height="21"/>
@@ -272,6 +298,18 @@ straight ahead</string>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" image="checkmark.circle.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="Buz-i8-NrY">
+                                <rect key="frame" x="170" y="717.5" width="75" height="75"/>
+                                <color key="tintColor" systemColor="secondaryLabelColor"/>
+                                <accessibility key="accessibilityConfiguration" label="found door handle">
+                                    <accessibilityTraits key="traits" button="YES"/>
+                                    <bool key="isElement" value="YES"/>
+                                </accessibility>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="76" id="Ghq-wm-m2a"/>
+                                    <constraint firstAttribute="width" constant="75" id="qu0-4l-Ub9"/>
+                                </constraints>
+                            </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="LFP-KE-iii"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -333,6 +371,7 @@ straight ahead</string>
     <resources>
         <image name="arrow.up" catalog="system" width="120" height="128"/>
         <image name="car.circle.fill" catalog="system" width="128" height="121"/>
+        <image name="checkmark.circle.fill" catalog="system" width="128" height="121"/>
         <image name="circle.fill" catalog="system" width="128" height="121"/>
         <image name="dot.circle.viewfinder" catalog="system" width="128" height="115"/>
         <image name="map" catalog="system" width="128" height="110"/>

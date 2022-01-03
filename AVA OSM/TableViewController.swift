@@ -123,12 +123,15 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
         self.view.addSubview(activityIndicator)
         
         // In actual AVA App calculate bounding box surrounding navigation area
-        let location = self.locationManager.location!.coordinate
-        let left : Double = location.longitude - 0.005
-        let bottom : Double = location.latitude - 0.005
-        let right : Double = location.longitude + 0.005
-        let top : Double = location.latitude + 0.005
-        queryDataInBounds(left: left, bottom: bottom, right: right, top: top)
+        if let location = self.locationManager.location?.coordinate {
+            let left : Double = location.longitude - 0.005
+            let bottom : Double = location.latitude - 0.005
+            let right : Double = location.longitude + 0.005
+            let top : Double = location.latitude + 0.005
+            queryDataInBounds(left: left, bottom: bottom, right: right, top: top)
+        } else {
+            // present location error
+        }
     }
     
     func viewWillDisappear() {
