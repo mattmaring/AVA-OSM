@@ -218,6 +218,8 @@ extension DataCommunicationChannel: CBCentralManagerDelegate {
     // characteristic after peripheral connection.
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         if let didConnectHandler = accessoryConnectedHandler {
+            // TODO
+            // Sometimes: Unexpectedly found nil while unwrapping an Optional value
             didConnectHandler(discoveredPeripheralName!)
         }
         

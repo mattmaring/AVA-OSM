@@ -20,6 +20,10 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Bluetooth is used to exchange Nearby Interaction configuration data with a connected accessory.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>This app uses bluetooth to connect to a FiRa device, to exchange parameters and start UWB ranging</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_avaosm._tcp</string>
@@ -30,10 +34,6 @@
 	<string>AVA uses location services to monitor your current location and provide navigation guidance</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>AVA uses location services to monitor your current location and provide navigation guidance</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>This app uses bluetooth to connect to a FiRa device, to exchange parameters and start UWB ranging</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Bluetooth is used to exchange Nearby Interaction configuration data with a connected accessory.</string>
 	<key>NSNearbyInteractionAllowOnceUsageDescription</key>
 	<string>AVA OSM requires access to Nearby Interactions to provide accurate navigation to the vehicle</string>
 	<key>NSNearbyInteractionUsageDescription</key>
@@ -59,6 +59,10 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -79,10 +83,6 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>audio</string>
 	</array>
 </dict>
 </plist>

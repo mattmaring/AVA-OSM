@@ -54,6 +54,14 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     @IBOutlet weak var sceneView: ARSCNView!
     @IBOutlet weak var uwb_data: UILabel!
     
+    @IBAction func cancelAction(_ sender: Any) {
+        self.dismiss(animated: true, completion: nil)
+    }
+    
+    @IBAction func alertAction(_ sender: Any) {
+        print("Honk Car Horn!")
+    }
+    
     @IBOutlet weak var blurToggle: UISwitch!
     @IBAction func blurToggle(_ sender: Any) {
         if blurToggle.isOn {

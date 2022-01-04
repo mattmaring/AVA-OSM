@@ -141,10 +141,16 @@ class CustomStyle: DayStyle {
     }
 }
 
+enum State {
+    case normal
+    case navigating
+    case sensing
+}
+
 // MARK: - MapViewController
 class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
-
-    @IBOutlet weak var mapView: MKMapView!
+    
+    @IBOutlet weak var textView: UITextView!
     @IBOutlet weak var container: UIView!
 //    @IBOutlet weak var modeText: UILabel!
 //    @IBAction func switchMode(_ sender: Any) {
@@ -154,10 +160,24 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
 //            Debug.sharedInstance.modeText = "Driver"
 //        }
 //    }
+    @IBOutlet weak var navigateButton: UIButton!
     @IBAction func navigate(_ sender: Any) {
         container.isHidden = false
-        mapView.isHidden = true
         updateDirections()
+    }
+    @IBOutlet weak var poisButton: UIButton!
+    @IBAction func pointsOfInterest(_ sender: Any) {
+        let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+        let tableViewController = storyBoard.instantiateViewController(withIdentifier: "TableViewController") as! TableViewController
+        tableViewController.modalPresentationStyle = .fullScreen
+        self.present(tableViewController, animated: true, completion: nil)
+    }
+    @IBOutlet weak var trackerButton: UIButton!
+    @IBAction func tracker(_ sender: Any) {
+        let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+        let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
+        trackerViewController.modalPresentationStyle = .fullScreen
+        self.present(trackerViewController, animated: true, completion: nil)
     }
     
     var locationManager = CLLocationManager()
@@ -166,20 +186,38 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     
     // OpenRouteService API
     //let origin = CLLocationCoordinate2D(latitude: 44.896792244693884, longitude: -68.6725158170279)
-    let destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
+    //let destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
+    let destination = CLLocationCoordinate2D(latitude: 44.564621, longitude: -69.663669)
     //let destination = CLLocationCoordinate2D(latitude: 44.90012957373266, longitude: -68.67127501997854)
     var routeOptions = NavigationRouteOptions(waypoints: [])
+    
+    let exit_ref_spatial = "rear"
+    let building_nickname = "Davis"
+    let parking_direction = "straight ahead"
+    let parking_distance = "15 feet"
+    let parking_type = "accessible space"
+    
+    let contrastLabel = UIColor(named: "contrastLabelColor")
     
     // MARK: - viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        mapView.delegate = self
-        mapView.showsUserLocation = true
-        mapView.showsBuildings = true
-        mapView.userTrackingMode = .followWithHeading
+//        navigateButton.tintColor = .label
+//        poisButton.tintColor = .label
+//        trackerButton.tintColor = .label
+//
+//        navigateButton.setTitleColor(.systemBackground, for: .normal)
+//        poisButton.setTitleColor(.systemBackground, for: .normal)
+//        trackerButton.setTitleColor(.systemBackground, for: .normal)
+//
+//        view.addSubview(navigateButton)
+//        view.addSubview(poisButton)
+//        view.addSubview(trackerButton)
         
         container.isHidden = true
+        
+        textView.text = "Upon exiting from the \(exit_ref_spatial) entrance of \(building_nickname), walk \(parking_direction) \(parking_distance) to the parking lot. Your autonomous vehicle ride is parked in the \(parking_type). Use the sensor naviagtion to locate the rear passenger side door handle."
         
         locationManager.requestAlwaysAuthorization()
         if (CLLocationManager.locationServicesEnabled()) {
@@ -192,6 +230,10 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         //mapView.camera = MKMapCamera(lookingAtCenter: locationManager.location!.coordinate, fromDistance: 1.0, pitch: 75.0, heading: locationManager.location!.course)
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        container.isHidden = true
+    }
+    
     func newJSONDecoder() -> JSONDecoder {
         let decoder = JSONDecoder()
         if #available(iOS 10.0, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
@@ -202,23 +244,31 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     
     // MARK: - updateDirections
     func updateDirections() {
-        if let curLocation = locationManager.location?.coordinate {
-            let origin = Waypoint(coordinate: curLocation, name: "Current Location")
-            let destination = Waypoint(coordinate: destination, name: "Autonomous Vehicle")
-            routeOptions = NavigationRouteOptions(waypoints: [origin, destination])
-            routeOptions.profileIdentifier = .walking
-            routeOptions.includesAlternativeRoutes = false
-            routeOptions.includesVisualInstructions = true
-            Directions.shared.calculate(routeOptions) { [weak self] (session, result) in
-                switch result {
-                case .failure(let error):
-                    print(error.localizedDescription)
-                case .success(let response):
-                    guard let strongSelf = self else {
-                        return
+        if let curLocation = locationManager.location {
+            if curLocation.distance(from: CLLocation(latitude: destination.latitude, longitude: destination.longitude)) < 10.0 {
+                let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+                let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
+                trackerViewController.modalPresentationStyle = .fullScreen
+                self.present(trackerViewController, animated: true, completion: nil)
+            } else {
+                let origin = Waypoint(coordinate: curLocation.coordinate, name: "Current Location")
+                let destination = Waypoint(coordinate: destination, name: "Autonomous Vehicle")
+                
+                routeOptions = NavigationRouteOptions(waypoints: [origin, destination])
+                routeOptions.profileIdentifier = .walking
+                routeOptions.includesAlternativeRoutes = false
+                routeOptions.includesVisualInstructions = true
+                Directions.shared.calculate(routeOptions) { [weak self] (session, result) in
+                    switch result {
+                    case .failure(let error):
+                        print(error.localizedDescription)
+                    case .success(let response):
+                        guard let strongSelf = self else {
+                            return
+                        }
+                        strongSelf.routeResponse = response
+                        strongSelf.presentDirections()
                     }
-                    strongSelf.routeResponse = response
-                    strongSelf.presentDirections()
                 }
             }
         }
@@ -251,14 +301,6 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     // MARK: - locationManager
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         //updateDirections()
-    }
-    
-    // MARK: - mapView
-    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-        let renderer = MKPolylineRenderer(polyline: overlay as! MKPolyline)
-        renderer.strokeColor = UIColor.blue
-        renderer.lineWidth = 2.0
-        return renderer
     }
 }
 

@@ -97,8 +97,28 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
     var names : [Dictionary<Int, String>.Element] = [] //Array has order, dictionaries do NOT
     var updatingNames = false
     
+    let contrastLabel = UIColor(named: "contrastLabelColor")
+    
+    lazy var cancelButton: UIButton = {
+        var button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 30, weight: .semibold)
+        button.backgroundColor = .label
+        //button.foregroundColor =
+        button.setTitle("Dismiss", for: .normal)
+        button.layer.cornerRadius = 5
+        button.addTarget(self, action: #selector(cancelAction(_:)), for: .touchUpInside)
+        return button
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        view.addSubview(cancelButton)
+        cancelButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+        cancelButton.widthAnchor.constraint(equalToConstant: self.view.frame.width - 40).isActive = true
+        cancelButton.heightAnchor.constraint(equalToConstant: 80).isActive = true
+        cancelButton.bottomAnchor.constraint(equalTo: self.view.topAnchor, constant: self.view.frame.height - 80).isActive = true
         
         // Request permission to access location
         locationManager.requestAlwaysAuthorization()
@@ -139,6 +159,10 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
         
         locationManager.stopUpdatingHeading()
         locationManager.stopUpdatingLocation()
+    }
+
+    @objc func cancelAction(_ button: UIButton) {
+        self.dismiss(animated: true, completion: nil)
     }
     
     // Check if the area is less than 0.25
