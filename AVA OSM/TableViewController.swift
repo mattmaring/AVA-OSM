@@ -104,7 +104,7 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.titleLabel?.font = UIFont.systemFont(ofSize: 30, weight: .semibold)
         button.backgroundColor = .label
-        //button.foregroundColor =
+        button.setTitleColor(.systemBackground, for: .normal)
         button.setTitle("Dismiss", for: .normal)
         button.layer.cornerRadius = 5
         button.addTarget(self, action: #selector(cancelAction(_:)), for: .touchUpInside)

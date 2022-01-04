@@ -230,9 +230,9 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         //mapView.camera = MKMapCamera(lookingAtCenter: locationManager.location!.coordinate, fromDistance: 1.0, pitch: 75.0, heading: locationManager.location!.course)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        container.isHidden = true
-    }
+//    override func viewWillAppear(_ animated: Bool) {
+//        container.isHidden = true
+//    }
     
     func newJSONDecoder() -> JSONDecoder {
         let decoder = JSONDecoder()
@@ -277,6 +277,8 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     func presentDirections() {
         guard let routeResponse = routeResponse else { return }
         
+        container.isHidden = false
+        
         // Since first route is retrieved from response `routeIndex` is set to 0.
         let navigationService = MapboxNavigationService(routeResponse: routeResponse, routeIndex: 0, routeOptions: routeOptions)
         let navigationOptions = NavigationOptions(styles: [CustomStyle()], navigationService: navigationService)
@@ -285,7 +287,6 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         navigationViewController.navigationMapView?.userLocationStyle = .courseView()
         
         navigationViewController.delegate = self
-        
         addChild(navigationViewController)
         container.addSubview(navigationViewController.view)
         navigationViewController.view.translatesAutoresizingMaskIntoConstraints = false
@@ -307,5 +308,6 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
 extension MapViewController: NavigationViewControllerDelegate {
     func navigationViewControllerDidDismiss(_ navigationViewController: NavigationViewController, byCanceling canceled: Bool) {
         navigationController?.popViewController(animated: true)
+        container.isHidden = true
     }
 }
