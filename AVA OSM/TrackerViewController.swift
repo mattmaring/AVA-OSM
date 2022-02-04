@@ -29,6 +29,7 @@ struct Direction {
 extension FloatingPoint {
     // Converts degrees to radians.
     var degreesToRadians: Self { self * .pi / 180 }
+    
     // Converts radians to degrees.
     var radiansToDegrees: Self { self * 180 / .pi }
 }
@@ -55,6 +56,13 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     @IBOutlet weak var uwb_data: UILabel!
     
     @IBAction func cancelAction(_ sender: Any) {
+        // Ask the accessory to stop.
+        sendDataToAccessory(Data([MessageId.stop.rawValue]))
+
+        // Replace the invalidated session with a new one.
+        self.session = NISession()
+        self.session.delegate = self
+        
         self.dismiss(animated: true, completion: nil)
     }
     
@@ -122,11 +130,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     let DIST_MAX: Float = 999999.0
     let YAW_MAX: Float = 999.0
     let HEADING_MAX: Double = 999.0
-    let CLOSE_RANGE: Float = 0.333
+    let CLOSE_RANGE: Float = 1.0
     
     // MARK: - Car location
-    //let destination = CLLocation(latitude: 44.564825926200015, longitude: -69.65909124016235)
-    let destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
+    var destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
     
     // GPS location storage
     var car_distance: Float = 999999.0
@@ -593,7 +600,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
     }
     
-    func get3DPosition(pov: SCNVector3, azimuth: Float, elevation: Float, distance: Float) -> SCNVector3 {
+    func get3DPosition(position: simd_float4, pov: SCNVector3, azimuth: Float, elevation: Float, distance: Float) -> SCNVector3 {
         // SCNVector3(uwb_distance * sin(pov.eulerAngles.y + azimuth), uwb_distance * sin(pov.eulerAngles.x + elevation), -uwb_distance * cos(pov.eulerAngles.y + azimuth))
         
         let pitch = pov.x + elevation
@@ -607,7 +614,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         let x = _uwb_distance * sin(yaw)
         let z = -_uwb_distance * cos(yaw)
         
-        return SCNVector3(x, y, z)
+        return SCNVector3(position.x + x, position.y + y, position.z + z)
     }
     
     // MARK: - NISessionDelegate
@@ -681,6 +688,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     
     // MARK: - Update NINearbyObject
     
+    // should update data on AR kit update frame perhaps and just store new sensor data here
     func updateObject(accessory: NINearbyObject) {
         if let distance = accessory.distance {
             uwb_distance = distance
@@ -691,21 +699,25 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             } else {
                 arrived = false
             }
-        } else if !uwbConnectionActive {
+        } else if boxNode.transform.m41 != 0.0 || boxNode.transform.m42 != 0.0 || boxNode.transform.m43 != 0.0 {
+            guard let position = sceneView.session.currentFrame?.camera.transform.columns.3 else { return }
+            uwb_distance = sqrt(pow(position.x - boxNode.position.x, 2) + pow(position.y - boxNode.position.y, 2) + pow(position.z - boxNode.position.z, 2))
+        }/* else if !uwbConnectionActive {
             uwb_distance = DIST_MAX
-        }
+        }*/
         
-        if let direction = accessory.direction, uwb_distance > CLOSE_RANGE && abs(azimuth(from: direction).radiansToDegrees) < 20.0 && abs(elevation(from: direction).radiansToDegrees) < 20.0 {
+        // check if distance update is valid, cancel tracking if so
+        
+        if let direction = accessory.direction, abs(azimuth(from: direction).radiansToDegrees) < 20.0 && abs(elevation(from: direction).radiansToDegrees) < 20.0 {
             let azimuth = azimuth(from: direction)
             let elevation = elevation(from: direction)
             
             guard let camera = sceneView.session.currentFrame?.camera else { return }
-            guard let pov = sceneView.pointOfView else { return }
-            last_position = pov.position
+            guard let position = sceneView.session.currentFrame?.camera.transform.columns.3 else { return }
             
             boxNode.simdEulerAngles = direction
-            boxNode.position = SCNVector3(0, 0, -2)
-            //boxNode.position = get3DPosition(pov: SCNVector3(x: camera.eulerAngles.x, y: camera.eulerAngles.y, z: camera.eulerAngles.z), azimuth: azimuth, elevation: elevation, distance: uwb_distance)
+            //boxNode.position = SCNVector3(0, 0, 2)
+            boxNode.position = get3DPosition(position: position, pov: SCNVector3(x: camera.eulerAngles.x, y: camera.eulerAngles.y, z: camera.eulerAngles.z), azimuth: azimuth, elevation: elevation, distance: uwb_distance)
             
             sceneView.scene.rootNode.addChildNode(boxNode)
             

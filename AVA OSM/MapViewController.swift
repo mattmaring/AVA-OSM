@@ -151,6 +151,7 @@ enum State {
 class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
     
     @IBOutlet weak var textView: UITextView!
+    @IBOutlet weak var poisTextView: UITextView!
     @IBOutlet weak var container: UIView!
 //    @IBOutlet weak var modeText: UILabel!
 //    @IBAction func switchMode(_ sender: Any) {
@@ -163,12 +164,14 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     @IBOutlet weak var navigateButton: UIButton!
     @IBAction func navigate(_ sender: Any) {
         container.isHidden = false
+        textView.isHidden = true
         updateDirections()
     }
     @IBOutlet weak var poisButton: UIButton!
     @IBAction func pointsOfInterest(_ sender: Any) {
         let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
         let tableViewController = storyBoard.instantiateViewController(withIdentifier: "TableViewController") as! TableViewController
+        tableViewController.destination = CLLocation(latitude: destination.latitude, longitude: destination.longitude)
         tableViewController.modalPresentationStyle = .fullScreen
         self.present(tableViewController, animated: true, completion: nil)
     }
@@ -176,6 +179,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     @IBAction func tracker(_ sender: Any) {
         let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
         let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
+        trackerViewController.destination = CLLocation(latitude: destination.latitude, longitude: destination.longitude)
         trackerViewController.modalPresentationStyle = .fullScreen
         self.present(trackerViewController, animated: true, completion: nil)
     }
@@ -185,17 +189,19 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     var routeResponse: RouteResponse?
     
     // OpenRouteService API
-    //let origin = CLLocationCoordinate2D(latitude: 44.896792244693884, longitude: -68.6725158170279)
-    //let destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
-    let destination = CLLocationCoordinate2D(latitude: 44.564621, longitude: -69.663669)
-    //let destination = CLLocationCoordinate2D(latitude: 44.90012957373266, longitude: -68.67127501997854)
+    var destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
     var routeOptions = NavigationRouteOptions(waypoints: [])
     
-    let exit_ref_spatial = "rear"
-    let building_nickname = "Davis"
-    let parking_direction = "straight ahead"
-    let parking_distance = "15 feet"
-    let parking_type = "accessible space"
+//    let exit_ref_spatial = "rear"
+//    let building_nickname = "Davis"
+//    let parking_direction = "straight ahead"
+//    let parking_distance = "15 feet"
+//    let parking_type = "accessible space"
+    let exit_ref_spatial = "side"
+    let building_nickname = "Carnegie Hall"
+    let parking_direction = "left"
+    let parking_distance = "300 feet"
+    let parking_type = "circular driveway in front of Penobscot Hall"
     
     let contrastLabel = UIColor(named: "contrastLabelColor")
     
@@ -216,8 +222,10 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
 //        view.addSubview(trackerButton)
         
         container.isHidden = true
+        poisTextView.isHidden = true
+        textView.isHidden = false
         
-        textView.text = "Upon exiting from the \(exit_ref_spatial) entrance of \(building_nickname), walk \(parking_direction) \(parking_distance) to the parking lot. Your autonomous vehicle ride is parked in the \(parking_type). Use the sensor naviagtion to locate the rear passenger side door handle."
+        textView.text = "Upon exiting from the \(exit_ref_spatial) entrance of \(building_nickname), your autonomous vehicle is located \(parking_distance) to the \(parking_direction) in the \(parking_type). Use the sensor naviagtion to locate the rear driver side door handle."
         
         locationManager.requestAlwaysAuthorization()
         if (CLLocationManager.locationServicesEnabled()) {
@@ -248,10 +256,12 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
             if curLocation.distance(from: CLLocation(latitude: destination.latitude, longitude: destination.longitude)) < 10.0 {
                 let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
                 let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
+                trackerViewController.destination = CLLocation(latitude: destination.latitude, longitude: destination.longitude)
                 trackerViewController.modalPresentationStyle = .fullScreen
                 self.present(trackerViewController, animated: true, completion: nil)
             } else {
                 let origin = Waypoint(coordinate: curLocation.coordinate, name: "Current Location")
+                //let origin = Waypoint(coordinate: origin, name: "Current Location")
                 let destination = Waypoint(coordinate: destination, name: "Autonomous Vehicle")
                 
                 routeOptions = NavigationRouteOptions(waypoints: [origin, destination])
@@ -278,12 +288,17 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         guard let routeResponse = routeResponse else { return }
         
         container.isHidden = false
+        textView.isHidden = true
+        poisTextView.isHidden = false
+        
+        poisTextView.text = "While on the walkway, Schoodic Road is located to your right"
         
         // Since first route is retrieved from response `routeIndex` is set to 0.
         let navigationService = MapboxNavigationService(routeResponse: routeResponse, routeIndex: 0, routeOptions: routeOptions)
         let navigationOptions = NavigationOptions(styles: [CustomStyle()], navigationService: navigationService)
         let navigationViewController = NavigationViewController(for: routeResponse, routeIndex: 0, routeOptions: routeOptions, navigationOptions: navigationOptions)
         navigationViewController.routeLineTracksTraversal = true
+        //navigationViewController.
         navigationViewController.navigationMapView?.userLocationStyle = .courseView()
         
         navigationViewController.delegate = self
@@ -309,5 +324,7 @@ extension MapViewController: NavigationViewControllerDelegate {
     func navigationViewControllerDidDismiss(_ navigationViewController: NavigationViewController, byCanceling canceled: Bool) {
         navigationController?.popViewController(animated: true)
         container.isHidden = true
+        poisTextView.isHidden = true
+        textView.isHidden = false
     }
 }

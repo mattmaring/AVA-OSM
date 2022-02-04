@@ -82,8 +82,7 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
     let DIR_MAX = 999.0
     
     // Car location
-    let destination = CLLocation(latitude: 44.563138, longitude: -69.661305) // Example location of vehicle in Eustis Parking Lot
-    //let destination = CLLocation(latitude: 44.90012957373266, longitude: -68.67127501997854)
+    var destination = CLLocation(latitude: 44.563138, longitude: -69.661305) // Example location of vehicle in Eustis Parking Lot
     var car_distance = 999999.0
     var car_direction = 999.0
     
@@ -106,7 +105,7 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
         button.backgroundColor = .label
         button.setTitleColor(.systemBackground, for: .normal)
         button.setTitle("Dismiss", for: .normal)
-        button.layer.cornerRadius = 5
+        button.layer.cornerRadius = 40
         button.addTarget(self, action: #selector(cancelAction(_:)), for: .touchUpInside)
         return button
     }()
@@ -179,28 +178,38 @@ class TableViewController: UITableViewController, CLLocationManagerDelegate {
     }
     
     func tagNaturalLanguage(tags: [String: String]) -> String {
-        if (tags["building"] != nil) {
-            if (tags["building"] == "yes") {
+        if let building = tags["building"] {
+            if building == "yes" {
                 return "Building"
-            } else if (tags["building"] == "college") {
+            } else if building == "college" {
                 return "College Building"
             } else {
-                if let building = tags["building"] {
-                    return building.capitalized
-                } else {
-                    return "Building"
-                }
+                return building.capitalized
             }
-        } else if (tags["amenity"]) != nil {
-            if let amenity = tags["amenity"] {
-                return amenity.capitalized
-            } else {
-                return "Amenity"
-            }
-        } else if (tags["highway"] != nil) {
+        } else if let amenity = tags["amenity"] {
+            return amenity.capitalized
+        } else if let _ = tags["highway"] {
             return "Road"
+        } else if let place = tags["place"] {
+            return "Range of " + place.capitalized
+        } else if let type = tags["type"] {
+            return type.capitalized
+        } else if let natural = tags["natural"] {
+            if natural == "water" {
+                return "Natural Water Body"
+            } else {
+                return "Natural " + natural.capitalized
+            }
+        } else if let leisure = tags["leisure"] {
+            return leisure.capitalized.replacingOccurrences(of: "_", with: " ")
+        } else if let tourism = tags["tourism"] {
+            return tourism.capitalized
+        } else if let landuse = tags["landuse"] {
+            return landuse.capitalized
+        } else if let man_made = tags["man_made"] {
+            return man_made.capitalized
         } else {
-            return ""
+            return "" // add additional 'else if' statements to handle other possibilities
         }
     }
     
