@@ -176,6 +176,29 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         circleImageSize = circleImage.bounds.size
         hapticFeedbackTimer?.invalidate()
         
+        blurToggle.isOn = true
+        boxToggle.isOn = true
+        hapticToggle.isOn = true
+        
+        arrowImage.isHidden = true
+        circleImage.isHidden = true
+        uwb_data.text = ""
+        
+        // Initialize visualizations
+        let attributedString1 = NSMutableAttributedString(string: "\n-.--", attributes: attributes1)
+        let attributedString2 = NSMutableAttributedString(string: " ft", attributes: attributes2)
+        
+        attributedString1.append(attributedString2)
+        
+        directionDescriptionLabel.attributedText = attributedString1
+        
+        // Set a delegate for session updates from the framework.
+        session.delegate = self
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
         // Request permission to access location
         locationManager.requestAlwaysAuthorization()
         if (CLLocationManager.locationServicesEnabled()) {
@@ -191,41 +214,11 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             }
         }
         
-        blurToggle.isOn = true
-        boxToggle.isOn = true
-        hapticToggle.isOn = true
-        
-        arrowImage.isHidden = true
-        circleImage.isHidden = true
-        uwb_data.text = ""
-        
         sceneView.session.delegate = self
         
         let doorHandle = ARWWorldAnchor(column3: [0, 0, 0, 1])
         sceneView.session.add(anchor: ARAnchor(anchor: doorHandle))
         
-        // Initialize visualizations
-        let attributedString1 = NSMutableAttributedString(string: "\n-.--", attributes: attributes1)
-        let attributedString2 = NSMutableAttributedString(string: " ft", attributes: attributes2)
-        
-        attributedString1.append(attributedString2)
-        
-        directionDescriptionLabel.attributedText = attributedString1
-        
-        // Set a delegate for session updates from the framework.
-        session.delegate = self
-        
-        // Prepare the data communication channel.
-        dataChannel.accessoryConnectedHandler = accessoryConnected
-        dataChannel.accessoryDisconnectedHandler = accessoryDisconnected
-        dataChannel.accessoryDataHandler = accessorySharedData
-        dataChannel.start()
-        
-        connectionTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(restoreSession), userInfo: nil, repeats: true)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
         let configuration = ARWorldTrackingConfiguration()
         configuration.isLightEstimationEnabled = true
         configuration.worldAlignment = .gravityAndHeading
@@ -238,6 +231,14 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         
         //sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
         
+        // Prepare the data communication channel.
+        dataChannel.accessoryConnectedHandler = accessoryConnected
+        dataChannel.accessoryDisconnectedHandler = accessoryDisconnected
+        dataChannel.accessoryDataHandler = accessorySharedData
+        dataChannel.start()
+        
+        connectionTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(restoreSession), userInfo: nil, repeats: true)
+        
         if blurToggle.isOn {
             let blur = UIBlurEffect(style: .regular)
             let blurView = UIVisualEffectView(effect: blur)
@@ -245,6 +246,20 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             sceneView.addSubview(blurView)
         }
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+
+        locationManager.stopUpdatingLocation()
+        locationManager.stopUpdatingHeading()
+        
+        sceneView.session.pause()
+        
+        sendDataToAccessory(Data([MessageId.stop.rawValue]))
+        
+        connectionTimer.invalidate()
+        hapticFeedbackTimer?.invalidate()
     }
     
     @objc func restoreSession() {
@@ -665,23 +680,41 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         searching = false
     }
     
+    func isValidDirection(direction: simd_float3) -> Bool {
+        return abs(azimuth(from: direction).radiansToDegrees) < 22.5 && abs(elevation(from: direction).radiansToDegrees) < 60.0
+    }
+    
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
         guard let accessory = nearbyObjects.first else { return }
         
         if !accessoryConnected { return }
         
-        //if arrived { return }
+        //if arrived { return } // disabling this for now
         
         if lightTooLow { return }
                 
         storedObject = accessory
         
-        iterations += 1
         if iterations < 10 {
-            calibrating = true
-        } else {
+//            if let _ = accessory.distance {
+//
+//            }
+            if let direction = accessory.direction, isValidDirection(direction: direction) {
+                iterations += 1
+            } else {
+                let string = "rotate in-place to capture direction information"
+                let utterance = AVSpeechUtterance(string: string)
+                utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+
+                let synth = AVSpeechSynthesizer()
+                synth.speak(utterance)
+            }
+        } else if iterations == 10 {
+            iterations += 1
             calibrating = false
         }
+        
+        if calibrating { return }
         
         updateObject(accessory: accessory)
     }
@@ -691,7 +724,16 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     // should update data on AR kit update frame perhaps and just store new sensor data here
     func updateObject(accessory: NINearbyObject) {
         if let distance = accessory.distance {
-            uwb_distance = distance
+            if distance == 0.0 {
+                if uwb_distance < 0.03 {
+                    uwb_distance = distance
+                }
+            } else if let _ = accessory.direction {
+                uwb_distance = distance
+            } else {
+                guard let position = sceneView.session.currentFrame?.camera.transform.columns.3 else { return }
+                uwb_distance = sqrt(pow(position.x - boxNode.position.x, 2) + pow(position.y - boxNode.position.y, 2) + pow(position.z - boxNode.position.z, 2))
+            }
             if uwb_distance == 0.0 {
                 arrived = true
                 //sendDataToAccessory(Data([MessageId.stop.rawValue]))
@@ -708,7 +750,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         
         // check if distance update is valid, cancel tracking if so
         
-        if let direction = accessory.direction, abs(azimuth(from: direction).radiansToDegrees) < 20.0 && abs(elevation(from: direction).radiansToDegrees) < 20.0 {
+        if let direction = accessory.direction, isValidDirection(direction: direction) {
             let azimuth = azimuth(from: direction)
             let elevation = elevation(from: direction)
             
