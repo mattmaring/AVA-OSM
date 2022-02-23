@@ -15,6 +15,7 @@ import simd
 import MapKit
 import AVFoundation
 import os.log
+import KalmanFilter
 
 struct Distance {
     var distance: Float
@@ -56,12 +57,22 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     @IBOutlet weak var uwb_data: UILabel!
     
     @IBAction func cancelAction(_ sender: Any) {
+        locationManager.stopUpdatingLocation()
+        locationManager.stopUpdatingHeading()
+        
+        sceneView.session.pause()
+        
+        connectionTimer.invalidate()
+        hapticFeedbackTimer?.invalidate()
+        
         // Ask the accessory to stop.
         sendDataToAccessory(Data([MessageId.stop.rawValue]))
-
+        
+        dataChannel = DataCommunicationChannel()
+        
         // Replace the invalidated session with a new one.
-        self.session = NISession()
-        self.session.delegate = self
+        session = NISession()
+        session.delegate = self
         
         self.dismiss(animated: true, completion: nil)
     }
@@ -116,6 +127,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     var lightTooLow = false
     var locationManager = CLLocationManager()
     var circleImageSize = CGSize()
+    let speechSynthesizer = AVSpeechSynthesizer()
     
     // A mapping from a discovery token to a name.
     var accessoryMap = [NIDiscoveryToken: String]()
@@ -144,6 +156,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     var uwb_yaw : Float = 999.0
     var uwb_pitch : Float = 999.0
     var last_position = SCNVector3()
+    
+    var distanceFilter = KalmanFilter(stateEstimatePrior: 0.0, errorCovariancePrior: 1)
     
     // counter for uwb updates
     var iterations : Int = 0
@@ -176,29 +190,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         circleImageSize = circleImage.bounds.size
         hapticFeedbackTimer?.invalidate()
         
-        blurToggle.isOn = true
-        boxToggle.isOn = true
-        hapticToggle.isOn = true
-        
-        arrowImage.isHidden = true
-        circleImage.isHidden = true
-        uwb_data.text = ""
-        
-        // Initialize visualizations
-        let attributedString1 = NSMutableAttributedString(string: "\n-.--", attributes: attributes1)
-        let attributedString2 = NSMutableAttributedString(string: " ft", attributes: attributes2)
-        
-        attributedString1.append(attributedString2)
-        
-        directionDescriptionLabel.attributedText = attributedString1
-        
-        // Set a delegate for session updates from the framework.
-        session.delegate = self
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
         // Request permission to access location
         locationManager.requestAlwaysAuthorization()
         if (CLLocationManager.locationServicesEnabled()) {
@@ -214,10 +205,43 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             }
         }
         
+        blurToggle.isOn = true
+        boxToggle.isOn = true
+        hapticToggle.isOn = true
+        
+        arrowImage.isHidden = true
+        circleImage.isHidden = true
+        uwb_data.text = ""
+        
         sceneView.session.delegate = self
         
         let doorHandle = ARWWorldAnchor(column3: [0, 0, 0, 1])
         sceneView.session.add(anchor: ARAnchor(anchor: doorHandle))
+        
+        // Initialize visualizations
+        let attributedString1 = NSMutableAttributedString(string: "\n-.--", attributes: attributes1)
+        let attributedString2 = NSMutableAttributedString(string: " ft", attributes: attributes2)
+        
+        attributedString1.append(attributedString2)
+        
+        directionDescriptionLabel.attributedText = attributedString1
+        
+        // Set a delegate for session updates from the framework.
+        session.delegate = self
+        
+        // Prepare the data communication channel.
+        dataChannel.accessoryConnectedHandler = accessoryConnected
+        dataChannel.accessoryDisconnectedHandler = accessoryDisconnected
+        dataChannel.accessoryDataHandler = accessorySharedData
+        dataChannel.start()
+        
+        connectionTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(restoreSession), userInfo: nil, repeats: true)
+        
+        updateVisualization()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         
         let configuration = ARWorldTrackingConfiguration()
         configuration.isLightEstimationEnabled = true
@@ -231,14 +255,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         
         //sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
         
-        // Prepare the data communication channel.
-        dataChannel.accessoryConnectedHandler = accessoryConnected
-        dataChannel.accessoryDisconnectedHandler = accessoryDisconnected
-        dataChannel.accessoryDataHandler = accessorySharedData
-        dataChannel.start()
-        
-        connectionTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(restoreSession), userInfo: nil, repeats: true)
-        
         if blurToggle.isOn {
             let blur = UIBlurEffect(style: .regular)
             let blurView = UIVisualEffectView(effect: blur)
@@ -248,22 +264,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-
-        locationManager.stopUpdatingLocation()
-        locationManager.stopUpdatingHeading()
-        
-        sceneView.session.pause()
-        
-        sendDataToAccessory(Data([MessageId.stop.rawValue]))
-        
-        connectionTimer.invalidate()
-        hapticFeedbackTimer?.invalidate()
-    }
-    
     @objc func restoreSession() {
-        if arrived == false && uwbConnectionActive == false {
+        if uwbConnectionActive == false {
             sendDataToAccessory(Data([MessageId.initialize.rawValue]))
         } else {
             connectionTimer.invalidate()
@@ -341,80 +343,80 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     // MARK: - CoreLocation
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        updateDirections()
+        //updateDirections()
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
-        updateDirections()
-        if let accessory = storedObject, uwbConnectionActive {
-            updateObject(accessory: accessory)
-        }
+        //updateDirections()
+//        if let accessory = storedObject, uwbConnectionActive {
+//            updateObject(accessory: accessory)
+//        }
     }
     
     // MARK: - Update GPS Directions
     
-    func updateDirections() {
-        // Update distance
-        if let distance = locationManager.location?.distance(from: destination) {
-            car_distance = Float(distance)
-        } else {
-            car_distance = DIST_MAX
-        }
-        
-        // Update direction
-        if let coordinate = locationManager.location?.coordinate {
-            car_yaw = haversine(from: destination.coordinate, to: coordinate)
-        } else {
-            car_yaw = YAW_MAX
-        }
-        
-        if let heading = locationManager.heading?.trueHeading {
-            if car_yaw < 0.0 {
-                let result = car_yaw + 180.0 - Float(heading)
-                if result < -180.0 {
-                    car_yaw = 360.0 + result
-                } else {
-                    car_yaw = result
-                }
-            } else if car_yaw != YAW_MAX {
-                let result = car_yaw - 180.0 - Float(heading)
-                if result < -180.0 {
-                    car_yaw = 360.0 + result
-                } else {
-                    car_yaw = result
-                }
-            } else {
-                car_yaw = YAW_MAX
-            }
-        } else {
-            car_yaw = YAW_MAX
-        }
-        
-        if uwbConnectionActive == false {
-            if car_distance < CLOSE_RANGE {
-                timeInterval = getTimeInterval(distance: car_distance)
-                if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
-                    hapticFeedbackTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(closeTap), userInfo: nil, repeats: true)
-                }
-            } else {
-                hapticFeedbackTimer?.invalidate()
-            }
-            updateVisualization(distance: car_distance, yaw: car_yaw)
-            renderingOutput += "\(dateFormat.string(from: Date())), \(car_distance), \(car_yaw)\n"
-            //print("\(dateFormat.string(from: Date())), \(car_distance), \(car_yaw)")
-            if let stringData = renderingOutput.data(using: .utf8) {
-                try? stringData.write(to: renderingPath!)
-            }
-            
-            if let location = locationManager.location {
-                let coordinate = location.coordinate
-                coreLocationOutput += "\(dateFormat.string(from: Date())), \(car_distance * 3.280839895), \(car_yaw), \(coordinate.longitude), \(coordinate.latitude), \(location.altitude), \(location.course), \(location.speed), \(location.horizontalAccuracy), \(location.verticalAccuracy), \(location.horizontalAccuracy), \(location.speedAccuracy)\n"
-            }
-            if let stringData = coreLocationOutput.data(using: .utf8) {
-                try? stringData.write(to: coreLocationPath!)
-            }
-        }
-    }
+//    func updateDirections() {
+//        // Update distance
+//        if let distance = locationManager.location?.distance(from: destination) {
+//            car_distance = Float(distance)
+//        } else {
+//            car_distance = DIST_MAX
+//        }
+//
+//        // Update direction
+//        if let coordinate = locationManager.location?.coordinate {
+//            car_yaw = haversine(from: destination.coordinate, to: coordinate)
+//        } else {
+//            car_yaw = YAW_MAX
+//        }
+//
+//        if let heading = locationManager.heading?.trueHeading {
+//            if car_yaw < 0.0 {
+//                let result = car_yaw + 180.0 - Float(heading)
+//                if result < -180.0 {
+//                    car_yaw = 360.0 + result
+//                } else {
+//                    car_yaw = result
+//                }
+//            } else if car_yaw != YAW_MAX {
+//                let result = car_yaw - 180.0 - Float(heading)
+//                if result < -180.0 {
+//                    car_yaw = 360.0 + result
+//                } else {
+//                    car_yaw = result
+//                }
+//            } else {
+//                car_yaw = YAW_MAX
+//            }
+//        } else {
+//            car_yaw = YAW_MAX
+//        }
+//
+//        if uwbConnectionActive == false {
+//            if car_distance < CLOSE_RANGE {
+//                timeInterval = getTimeInterval(distance: car_distance)
+//                if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
+//                    hapticFeedbackTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(closeTap), userInfo: nil, repeats: true)
+//                }
+//            } else {
+//                hapticFeedbackTimer?.invalidate()
+//            }
+//            updateVisualization(distance: car_distance, yaw: car_yaw)
+//            renderingOutput += "\(dateFormat.string(from: Date())), \(car_distance), \(car_yaw)\n"
+//            //print("\(dateFormat.string(from: Date())), \(car_distance), \(car_yaw)")
+//            if let stringData = renderingOutput.data(using: .utf8) {
+//                try? stringData.write(to: renderingPath!)
+//            }
+//
+//            if let location = locationManager.location {
+//                let coordinate = location.coordinate
+//                coreLocationOutput += "\(dateFormat.string(from: Date())), \(car_distance * 3.280839895), \(car_yaw), \(coordinate.longitude), \(coordinate.latitude), \(location.altitude), \(location.course), \(location.speed), \(location.horizontalAccuracy), \(location.verticalAccuracy), \(location.horizontalAccuracy), \(location.speedAccuracy)\n"
+//            }
+//            if let stringData = coreLocationOutput.data(using: .utf8) {
+//                try? stringData.write(to: coreLocationPath!)
+//            }
+//        }
+//    }
     
     // MARK: - Haptic Feedback
     
@@ -459,6 +461,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     // MARK: - ARSession
     
     func addBox() {
+        print("called add box")
         boxNode.geometry = SCNBox(width: 0.05, height: 0.05, length: 0.05, chamferRadius: 0)
         boxNode.position = SCNVector3(0, 0, 0)
         if boxToggle.isOn {
@@ -476,36 +479,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             lightTooLow = false
         }
         currentCamera = SCNMatrix4(frame.camera.transform)
-    }
-    
-    func updatePositionAndOrientationOf(_ node: SCNNode, withPosition position: SCNVector3, relativeTo referenceNode: SCNNode) {
-        let referenceNodeTransform = matrix_float4x4(referenceNode.transform)
-
-        // Setup a translation matrix with the desired position
-        var translationMatrix = matrix_identity_float4x4
-        translationMatrix.columns.3.x = position.x
-        translationMatrix.columns.3.y = position.y
-        translationMatrix.columns.3.z = position.z
-
-        // Combine the configured translation matrix with the referenceNode's transform to get the desired position AND orientation
-        let updatedTransform = matrix_multiply(referenceNodeTransform, translationMatrix)
-        node.transform = SCNMatrix4(updatedTransform)
-    }
-    
-    func calculateAngleBetween3Positions(pos1:SCNVector3, pos2:SCNVector3, pos3:SCNVector3) -> Float {
-        let v1 = SCNVector3(x: pos2.x-pos1.x, y: pos2.y-pos1.y, z: pos2.z-pos1.z)
-        let v2 = SCNVector3(x: pos3.x-pos1.x, y: pos3.y-pos1.y, z: pos3.z-pos1.z)
-
-        let v1Magnitude = sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z)
-        let v1Normal = SCNVector3(x: v1.x/v1Magnitude, y: v1.y/v1Magnitude, z: v1.z/v1Magnitude)
-      
-        let v2Magnitude = sqrt(v2.x * v2.x + v2.y * v2.y + v2.z * v2.z)
-        let v2Normal = SCNVector3(x: v2.x/v2Magnitude, y: v2.y/v2Magnitude, z: v2.z/v2Magnitude)
-
-        let result = v1Normal.x * v2Normal.x + v1Normal.y * v2Normal.y + v1Normal.z * v2Normal.z
-        let angle = acos(result)
-
-        return angle
+        
+        updateObject()
     }
     
     // MARK: - Visualizations
@@ -530,7 +505,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
     }
     
-    func updateVisualization(distance: Float, yaw: Float) {
+    func updateVisualization() {
         if arrived {
             hapticFeedbackTimer?.invalidate()
             circleImage.isHidden = true
@@ -557,13 +532,13 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             return
         }
         
-        if distance != DIST_MAX {
+        if uwb_distance < DIST_MAX {
             var format = "%0.0f"
-            if distance < CLOSE_RANGE {
+            if uwb_distance < CLOSE_RANGE {
                 format = "%0.1f"
             }
-            let distanceFill = String(format: format, distance * 3.280839895)
-            if distance < CLOSE_RANGE {
+            let distanceFill = String(format: format, uwb_distance * 3.280839895)
+            if uwb_distance < CLOSE_RANGE {
                 let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
                 let attributedString2 = NSMutableAttributedString(string: "ft\n", attributes: attributes2)
                 let attributedString3 = NSMutableAttributedString(string: "nearby", attributes: attributes1)
@@ -574,11 +549,11 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 directionDescriptionLabel.attributedText = attributedString1
                 
                 circleImage.isHidden = false
-                let scale = CGFloat(distance / CLOSE_RANGE / 2.0 + 0.5)
+                let scale = CGFloat(uwb_distance / CLOSE_RANGE / 2.0 + 0.5)
                 circleImage.bounds.size = CGSize(width: scale * circleImageSize.width, height: scale * circleImageSize.height)
             } else {
-                if yaw != YAW_MAX {
-                    let desc = directionNaturalLanguage(degrees: yaw)
+                if uwb_yaw < YAW_MAX {
+                    let desc = directionNaturalLanguage(degrees: uwb_yaw)
                     let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
                     let attributedString2 = NSMutableAttributedString(string: "ft\n\(desc.0)", attributes: attributes2)
                     let attributedString3 = NSMutableAttributedString(string: " \(desc.1)", attributes: attributes1)
@@ -607,29 +582,22 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             circleImage.isHidden = true
         }
         
-        if yaw != YAW_MAX && circleImage.isHidden {
+        if uwb_yaw < YAW_MAX && circleImage.isHidden {
             arrowImage.isHidden = false
-            arrowImage.transform = arrowImage.transform.rotated(by: (CGFloat(yaw) - atan2(arrowImage.transform.b, arrowImage.transform.a).radiansToDegrees).degreesToRadians)
+            arrowImage.transform = arrowImage.transform.rotated(by: (CGFloat(uwb_yaw) - atan2(arrowImage.transform.b, arrowImage.transform.a).radiansToDegrees).degreesToRadians)
         } else {
             arrowImage.isHidden = true
         }
     }
     
-    func get3DPosition(position: simd_float4, pov: SCNVector3, azimuth: Float, elevation: Float, distance: Float) -> SCNVector3 {
-        // SCNVector3(uwb_distance * sin(pov.eulerAngles.y + azimuth), uwb_distance * sin(pov.eulerAngles.x + elevation), -uwb_distance * cos(pov.eulerAngles.y + azimuth))
+    // MARK: AVSpeechSynthesizer
+    
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
         
-        let pitch = pov.x + elevation
-        let yaw = -pov.y + azimuth
-        
-        //uwb_data.text = "\(round(-pov.y.radiansToDegrees)) | \(round(azimuth.radiansToDegrees)) | \(round(yaw.radiansToDegrees))"
-        //print(pov.x.radiansToDegrees, elevation.radiansToDegrees, pitch.radiansToDegrees)
-        
-        let y = uwb_distance * sin(pitch)
-        let _uwb_distance = sqrt(uwb_distance * uwb_distance - y * y)
-        let x = _uwb_distance * sin(yaw)
-        let z = -_uwb_distance * cos(yaw)
-        
-        return SCNVector3(position.x + x, position.y + y, position.z + z)
+    }
+    
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        speechSynthesizer.stopSpeaking(at: .word)
     }
     
     // MARK: - NISessionDelegate
@@ -642,27 +610,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     func elevation(from direction: simd_float3) -> Float {
         return atan2(direction.z, direction.y) + .pi / 2
     }
-    
-    // // Initialization
-    // let process_uncertainty: Float = 0.15
-    // let predicted_estimate: Float = 10.0 // 10m or 29.5276ft, change this value later based on GPS/etc
-    // let standard_deviation: Float = 0.5
-    // let error_variance = standard_deviation * standard_deviation //0.25
-    //
-    // // Prediction
-    // let current_estimate: Float = 10.0 // 10m or 29.5276ft, change this value later based on GPS/etc
-    // let variance = error_variance + process_uncertainty //0.40
-    //
-    // // First Iteration
-    // let measurement_value = nearbyObjectUpdate.distance!
-    // let measurement_uncertainty = error_variance
-    // let kalman_gain = variance / (variance + measurement_uncertainty) // 0.61538
-    // let distance = current_estimate + kalman_gain * (measurement_value - current_estimate)
-    // let count = nearbyObjects.count
-    // let dist = nearbyObjectUpdate.distance!
-    // let prev = nearbyObjects[count - 2].distance!
-    // let variance = (dist - prev) / prev
-    // distance = prev + variance * (dist - prev)
     
     func session(_ session: NISession, didGenerateShareableConfigurationData shareableConfigurationData: Data, for object: NINearbyObject) {
         guard object.discoveryToken == configuration?.accessoryDiscoveryToken else { return }
@@ -689,180 +636,159 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         
         if !accessoryConnected { return }
         
-        //if arrived { return } // disabling this for now
-        
-        if lightTooLow { return }
-                
         storedObject = accessory
         
-        if iterations < 10 {
-//            if let _ = accessory.distance {
-//
-//            }
-            if let direction = accessory.direction, isValidDirection(direction: direction) {
-                iterations += 1
-            } else {
-                let string = "rotate in-place to capture direction information"
-                let utterance = AVSpeechUtterance(string: string)
-                utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-
-                let synth = AVSpeechSynthesizer()
-                synth.speak(utterance)
-            }
-        } else if iterations == 10 {
-            iterations += 1
-            calibrating = false
-        }
-        
-        if calibrating { return }
-        
-        updateObject(accessory: accessory)
+        updateObject()
     }
     
     // MARK: - Update NINearbyObject
     
-    // should update data on AR kit update frame perhaps and just store new sensor data here
-    func updateObject(accessory: NINearbyObject) {
-        if let distance = accessory.distance {
-            if distance == 0.0 {
-                if uwb_distance < 0.03 {
-                    uwb_distance = distance
-                }
-            } else if let _ = accessory.direction {
-                uwb_distance = distance
-            } else {
-                guard let position = sceneView.session.currentFrame?.camera.transform.columns.3 else { return }
-                uwb_distance = sqrt(pow(position.x - boxNode.position.x, 2) + pow(position.y - boxNode.position.y, 2) + pow(position.z - boxNode.position.z, 2))
-            }
-            if uwb_distance == 0.0 {
-                arrived = true
-                //sendDataToAccessory(Data([MessageId.stop.rawValue]))
-                // Don't stop sending data until confirmation of arrival is made (use cancel or confirmation of arrival button)
-            } else {
-                arrived = false
-            }
-        } else if boxNode.transform.m41 != 0.0 || boxNode.transform.m42 != 0.0 || boxNode.transform.m43 != 0.0 {
-            guard let position = sceneView.session.currentFrame?.camera.transform.columns.3 else { return }
-            uwb_distance = sqrt(pow(position.x - boxNode.position.x, 2) + pow(position.y - boxNode.position.y, 2) + pow(position.z - boxNode.position.z, 2))
-        }/* else if !uwbConnectionActive {
-            uwb_distance = DIST_MAX
-        }*/
-        
-        // check if distance update is valid, cancel tracking if so
-        
-        if let direction = accessory.direction, isValidDirection(direction: direction) {
-            let azimuth = azimuth(from: direction)
-            let elevation = elevation(from: direction)
-            
-            guard let camera = sceneView.session.currentFrame?.camera else { return }
-            guard let position = sceneView.session.currentFrame?.camera.transform.columns.3 else { return }
-            
-            boxNode.simdEulerAngles = direction
-            //boxNode.position = SCNVector3(0, 0, 2)
-            boxNode.position = get3DPosition(position: position, pov: SCNVector3(x: camera.eulerAngles.x, y: camera.eulerAngles.y, z: camera.eulerAngles.z), azimuth: azimuth, elevation: elevation, distance: uwb_distance)
-            
-            sceneView.scene.rootNode.addChildNode(boxNode)
-            
-            uwb_yaw = azimuth.radiansToDegrees
-            uwb_pitch = elevation.radiansToDegrees
-            
-//            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw), \(uwb_pitch)\n"
-//            if let stringData = nearbyInteractionOutput.data(using: .utf8) {
-//                try? stringData.write(to: nearbyInteractionPath!)
-//            }
-        } else if boxNode.transform.m41 != 0.0 || boxNode.transform.m42 != 0.0 || boxNode.transform.m43 != 0.0 {
-            guard let camera = sceneView.session.currentFrame?.camera else { return }
-            guard let position = sceneView.pointOfView?.position else { return }
+    func cubeMoved() -> Bool {
+        return boxNode.transform.m41 != 0.0 || boxNode.transform.m42 != 0.0 || boxNode.transform.m43 != 0.0
+    }
+    
+    func distance3D() -> Float {
+        return sqrt(pow(currentCamera.m41 - boxNode.position.x, 2) + pow(currentCamera.m42 - boxNode.position.y, 2) + pow(currentCamera.m43 - boxNode.position.z, 2))
+    }
 
-            //uwb_data.text = "\(position.x) | \(boxNode.position.x)"
-            
-            /* Digram - 2D direction field
-                            (N | z-)
-                               |
-                               |
-                         IV    |    I
-                               |
-            (W | x-) ——————————+—————————— (E | x+)
-                               |
-                        III    |    II
-                               |
-                               |
-                            (S | z+)
-             */
-            
-            // Example cases
-            
-            // Position = (-2, -1); Node = (1, 1)
-            // ∆X = 3; ∆Y = 2
-            // Angle = atan(∆Y/∆X)
-            //       = atan(2/3)
-            //         = 33.7º
-            // Should be 33.7º + 90.0º = 123.7º
-            
-            // Position = (1, 1); Node = (-2, -1)
-            // ∆X = -3; ∆Y = -2
-            // Angle = atan(∆Y/∆X)
-            //       = atan(2/3)
-            //         = 33.7º
-            // Should be 33.7º - 90.0º = -56.3º
-            
-            // Check direction scenarios
-            var move_angle : Float
-            if position.x < boxNode.position.x {
-                let dz = boxNode.position.z - position.z
-                let dx = boxNode.position.x - position.x
-                move_angle = atan(dz / dx) + .pi / 2.0
-            } else if position.x > boxNode.position.x {
-                let dz = boxNode.position.z - position.z
-                let dx = boxNode.position.x - position.x
-                move_angle = atan(dz / dx) - .pi / 2.0
-            } else {
-                // Catch divide by zero errors
-                if position.z < boxNode.position.z {
-                    move_angle = .pi
-                } else {
-                    move_angle = 0.0
-                }
+    func updateObject() {
+        if let accessory = storedObject, accessoryConnected /*&& !arrived*/ && !lightTooLow && uwbConnectionActive {
+//            if iterations < 5 {
+//                if let _ = accessory.distance, let direction = accessory.direction, isValidDirection(direction: direction) {
+//                    iterations += 1
+//                } else {
+//                    let string = "calibrating sensor, please rotate in-place to capture direction information"
+//                    let utterance = AVSpeechUtterance(string: string)
+//                    utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+//                    speechSynthesizer.speak(utterance)
+//                }
+//            } else if iterations == 5 {
+//                speechSynthesizer.stopSpeaking(at: .immediate)
+//                iterations += 1
+//                calibrating = false
+//                speechSynthesizer.stopSpeaking(at: .word)
+//            }
+            if let distance = accessory.distance, let direction = accessory.direction, isValidDirection(direction: direction) {
+                calibrating = false
             }
             
-            var yaw = move_angle + camera.eulerAngles.y
-            if yaw <= -.pi {
-                yaw += 2 * .pi
-            } else if yaw > .pi {
-                yaw -= 2 * .pi
-            }
-            uwb_yaw = yaw.radiansToDegrees
-            //uwb_data.text = "\(move_angle.radiansToDegrees) | \(camera.eulerAngles.y.radiansToDegrees)"
-
-//            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw), \(uwb_pitch)\n"
-//            if let stringData = nearbyInteractionOutput.data(using: .utf8) {
-//                try? stringData.write(to: nearbyInteractionPath!)
-//            }
-        } else if !uwbConnectionActive {
-            uwb_yaw = YAW_MAX
-//            nearbyInteractionOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), nil, nil\n"
-//            if let stringData = nearbyInteractionOutput.data(using: .utf8) {
-//                try? stringData.write(to: nearbyInteractionPath!)
-//            }
-        }
-        
-        if uwbConnectionActive == true {
-            if uwb_distance == DIST_MAX && uwb_yaw == YAW_MAX {
-                if car_distance < CLOSE_RANGE {
-                    timeInterval = getTimeInterval(distance: car_distance)
-                    if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
-                        hapticFeedbackTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(closeTap), userInfo: nil, repeats: true)
+            if !calibrating {
+                if let distance = accessory.distance {
+                    if distance == 0.0 {
+                        if uwb_distance < 0.03 {
+                            uwb_distance = distance
+                        }
+                    } else if let _ = accessory.direction {
+                        uwb_distance = distance
+                    } else {
+                        uwb_distance = distance3D()
                     }
-                } else {
-                    hapticFeedbackTimer?.invalidate()
+                    if uwb_distance == 0.0 {
+                        arrived = true
+                        //sendDataToAccessory(Data([MessageId.stop.rawValue]))
+                        // Don't stop sending data until confirmation of arrival is made (use cancel or confirmation of arrival button)
+                    } else {
+                        arrived = false
+                    }
+                } else if cubeMoved() {
+                    uwb_distance = distance3D()
                 }
-                updateVisualization(distance: car_distance, yaw: car_yaw)
-                renderingOutput += "\(dateFormat.string(from: Date())), \(car_distance * 3.280839895), \(car_yaw)\n"
-                //print("\(dateFormat.string(from: Date())), \(car_distance * 3.280839895), \(car_yaw)")
-                if let stringData = renderingOutput.data(using: .utf8) {
-                    try? stringData.write(to: renderingPath!)
+                
+                // check if distance update is valid, cancel tracking if so
+                
+                // need to check if direction flips while distance stays same
+                
+                if let direction = accessory.direction, isValidDirection(direction: direction) {
+                    let azimuth = azimuth(from: direction)
+                    let elevation = elevation(from: direction)
+                    
+                    guard let camera = sceneView.session.currentFrame?.camera else { return }
+                    boxNode.simdEulerAngles = direction
+                    
+                    let pov = SCNVector3(x: camera.eulerAngles.x, y: camera.eulerAngles.y, z: camera.eulerAngles.z)
+                    let pitch = pov.x + elevation
+                    let yaw = -pov.y + azimuth
+                    
+                    let y = uwb_distance * sin(pitch)
+                    let _uwb_distance = sqrt(uwb_distance * uwb_distance - y * y)
+                    let x = _uwb_distance * sin(yaw)
+                    let z = -_uwb_distance * cos(yaw)
+                    
+                    //boxNode.position = SCNVector3(0, 0, 2)
+                    boxNode.position = SCNVector3(currentCamera.m41 + x, currentCamera.m42 + y, currentCamera.m43 + z)
+                    
+                    sceneView.scene.rootNode.addChildNode(boxNode)
+                    
+                    uwb_yaw = azimuth.radiansToDegrees
+                    uwb_pitch = elevation.radiansToDegrees
+                } else if cubeMoved() {
+                    guard let camera = sceneView.session.currentFrame?.camera else { return }
+                    guard let position = sceneView.pointOfView?.position else { return }
+                    //print(position, camera.eulerAngles.y)
+
+                    //uwb_data.text = "\(position.x) | \(boxNode.position.x)"
+                    
+                    /* Digram - 2D direction field
+                                    (N | z-)
+                                       |
+                                       |
+                                 IV    |    I
+                                       |
+                    (W | x-) ——————————+—————————— (E | x+)
+                                       |
+                                III    |    II
+                                       |
+                                       |
+                                    (S | z+)
+                     */
+                    
+                    // Example cases
+                    
+                    // Position = (-2, -1); Node = (1, 1)
+                    // ∆X = 3; ∆Y = 2
+                    // Angle = atan(∆Y/∆X)
+                    //       = atan(2/3)
+                    //         = 33.7º
+                    // Should be 33.7º + 90.0º = 123.7º
+                    
+                    // Position = (1, 1); Node = (-2, -1)
+                    // ∆X = -3; ∆Y = -2
+                    // Angle = atan(∆Y/∆X)
+                    //       = atan(2/3)
+                    //         = 33.7º
+                    // Should be 33.7º - 90.0º = -56.3º
+                    
+                    // error dection
+                    
+                    
+                    // Check direction scenarios
+                    var move_angle : Float
+                    if position.x < boxNode.position.x {
+                        let dz = boxNode.position.z - position.z
+                        let dx = boxNode.position.x - position.x
+                        move_angle = atan(dz / dx) + .pi / 2.0
+                    } else if position.x > boxNode.position.x {
+                        let dz = boxNode.position.z - position.z
+                        let dx = boxNode.position.x - position.x
+                        move_angle = atan(dz / dx) - .pi / 2.0
+                    } else {
+                        // Catch divide by zero errors
+                        if position.z < boxNode.position.z {
+                            move_angle = .pi
+                        } else {
+                            move_angle = 0.0
+                        }
+                    }
+                    
+                    var yaw = move_angle + camera.eulerAngles.y
+                    if yaw <= -.pi {
+                        yaw += 2 * .pi
+                    } else if yaw > .pi {
+                        yaw -= 2 * .pi
+                    }
+                    uwb_yaw = yaw.radiansToDegrees
                 }
-            } else if uwb_yaw == YAW_MAX {
+                
                 if uwb_distance < CLOSE_RANGE {
                     timeInterval = getTimeInterval(distance: uwb_distance)
                     if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
@@ -871,29 +797,14 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 } else {
                     hapticFeedbackTimer?.invalidate()
                 }
-                updateVisualization(distance: uwb_distance, yaw: car_yaw)
-                renderingOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(car_yaw)\n"
-                //print("\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(car_yaw)")
-                if let stringData = renderingOutput.data(using: .utf8) {
-                    try? stringData.write(to: renderingPath!)
-                }
-            } else {
-                if uwb_distance < CLOSE_RANGE {
-                    timeInterval = getTimeInterval(distance: uwb_distance)
-                    if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
-                        hapticFeedbackTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(closeTap), userInfo: nil, repeats: true)
-                    }
-                } else {
-                    hapticFeedbackTimer?.invalidate()
-                }
-                updateVisualization(distance: uwb_distance, yaw: uwb_yaw)
-                renderingOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw)\n"
-                //print("\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw)")
-                if let stringData = renderingOutput.data(using: .utf8) {
-                    try? stringData.write(to: renderingPath!)
-                }
             }
         }
+        
+        updateVisualization()
+//        renderingOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw)\n"
+//        if let stringData = renderingOutput.data(using: .utf8) {
+//            try? stringData.write(to: renderingPath!)
+//        }
     }
 
     func session(_ session: NISession, didRemove nearbyObjects: [NINearbyObject], reason: NINearbyObject.RemovalReason) {
@@ -942,6 +853,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     }
 
     func sessionSuspensionEnded(_ session: NISession) {
+        print("trying again")
         sendDataToAccessory(Data([MessageId.initialize.rawValue]))
     }
 

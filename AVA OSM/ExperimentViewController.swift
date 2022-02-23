@@ -36,7 +36,14 @@ class ExperimentViewController: UIViewController {
     }
     
     @IBAction func phase1GPS(_ sender: Any) {
-        
+        // Need to lock this to GPS
+        if startExperiment() {
+            let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+            let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
+            trackerViewController.destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
+            trackerViewController.modalPresentationStyle = .fullScreen
+            self.present(trackerViewController, animated: true, completion: nil)
+        }
     }
     
     @IBAction func phase1UWB(_ sender: Any) {
@@ -50,7 +57,13 @@ class ExperimentViewController: UIViewController {
     }
     
     @IBAction func phase2(_ sender: Any) {
-        
+        if startExperiment() {
+            let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+            let mapViewController = storyBoard.instantiateViewController(withIdentifier: "MapViewController") as! MapViewController
+            mapViewController.destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
+            mapViewController.modalPresentationStyle = .fullScreen
+            self.present(mapViewController, animated: true, completion: nil)
+        }
     }
     
     @IBAction func normalOps(_ sender: Any) {
@@ -65,7 +78,7 @@ class ExperimentViewController: UIViewController {
     
     var menuItems: [UIAction] = []
     var experimentIDTitle = "nil"
-    let experimentIDs = ["1 - Matthew Maring", "2 - Stacy Doore", "3 - Scottie Yang"]
+    let experimentIDs = ["000001", "000002", "000003", "000004", "000005", "000006"]
     
     override func viewDidLoad() {
         super.viewDidLoad()

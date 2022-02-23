@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "KalmanFilter",
+        "repositoryURL": "https://github.com/magyarosibotond/KalmanFilter",
+        "state": {
+          "branch": "master",
+          "revision": "fde4119acda1d3874c4d7e8c12f115de08e2906e",
+          "version": null
+        }
+      },
+      {
         "package": "MapboxCommon",
         "repositoryURL": "https://github.com/mapbox/mapbox-common-ios.git",
         "state": {

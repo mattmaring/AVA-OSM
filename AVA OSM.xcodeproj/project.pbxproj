@@ -24,6 +24,7 @@
 		C080499B27AA0EC20078C00E /* ExperimentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C080499A27AA0EC20078C00E /* ExperimentViewController.swift */; };
 		C098B73D269CB0CF0024D77F /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73C269CB0CF0024D77F /* MapViewController.swift */; };
 		C098B73F269CB8880024D77F /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73E269CB8880024D77F /* TableViewController.swift */; };
+		C0B19C5A27B864D40055CB74 /* KalmanFilter in Frameworks */ = {isa = PBXBuildFile; productRef = C0B19C5927B864D40055CB74 /* KalmanFilter */; };
 		C0EF9D4726A745F9009CF3E8 /* NearbyInteraction.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */; };
 		C0EF9D4926A74604009CF3E8 /* MultipeerConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0EF9D4826A74604009CF3E8 /* MultipeerConnectivity.framework */; };
 		C0EF9D4B26A74639009CF3E8 /* TrackerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0EF9D4A26A74639009CF3E8 /* TrackerViewController.swift */; };
@@ -80,6 +81,7 @@
 			files = (
 				C065539627029648001036AF /* ARKit.framework in Frameworks */,
 				C0EF9D4726A745F9009CF3E8 /* NearbyInteraction.framework in Frameworks */,
+				C0B19C5A27B864D40055CB74 /* KalmanFilter in Frameworks */,
 				C0EF9D4926A74604009CF3E8 /* MultipeerConnectivity.framework in Frameworks */,
 				C067AB1827239160007C7F90 /* MapboxNavigation in Frameworks */,
 				C067AB1A27239164007C7F90 /* MapboxCoreNavigation in Frameworks */,
@@ -129,8 +131,8 @@
 			children = (
 				C0395429268DF30600E2ACB9 /* AppDelegate.swift */,
 				C039542B268DF30600E2ACB9 /* SceneDelegate.swift */,
-				C098B73C269CB0CF0024D77F /* MapViewController.swift */,
 				C080499A27AA0EC20078C00E /* ExperimentViewController.swift */,
+				C098B73C269CB0CF0024D77F /* MapViewController.swift */,
 				C098B73E269CB8880024D77F /* TableViewController.swift */,
 				C0EF9D4A26A74639009CF3E8 /* TrackerViewController.swift */,
 				C065539727033EA7001036AF /* ARWorldAnchor.swift */,
@@ -193,6 +195,7 @@
 			packageProductDependencies = (
 				C067AB1727239160007C7F90 /* MapboxNavigation */,
 				C067AB1927239164007C7F90 /* MapboxCoreNavigation */,
+				C0B19C5927B864D40055CB74 /* KalmanFilter */,
 			);
 			productName = "AVA OSM";
 			productReference = C0395426268DF30600E2ACB9 /* AVA OSM.app */;
@@ -267,6 +270,7 @@
 			mainGroup = C039541D268DF30600E2ACB9;
 			packageReferences = (
 				C04516882722461C00228C03 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */,
+				C0B19C5827B864D40055CB74 /* XCRemoteSwiftPackageReference "KalmanFilter" */,
 			);
 			productRefGroup = C0395427268DF30600E2ACB9 /* Products */;
 			projectDirPath = "";
@@ -689,6 +693,14 @@
 				minimumVersion = 2.0.0;
 			};
 		};
+		C0B19C5827B864D40055CB74 /* XCRemoteSwiftPackageReference "KalmanFilter" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/magyarosibotond/KalmanFilter";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -701,6 +713,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C04516882722461C00228C03 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */;
 			productName = MapboxCoreNavigation;
+		};
+		C0B19C5927B864D40055CB74 /* KalmanFilter */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0B19C5827B864D40055CB74 /* XCRemoteSwiftPackageReference "KalmanFilter" */;
+			productName = KalmanFilter;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
