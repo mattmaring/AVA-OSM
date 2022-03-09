@@ -225,7 +225,6 @@ extension DataCommunicationChannel: CBCentralManagerDelegate {
         if let didConnectHandler = accessoryConnectedHandler {
             // TODO
             // Sometimes: Unexpectedly found nil while unwrapping an Optional value
-            print("HEEEERRRREEE$$$$$$:", discoveredPeripheralName)
             didConnectHandler(discoveredPeripheralName!)
         }
         

@@ -124,8 +124,9 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     var lightTooLow = false
     var locationManager = CLLocationManager()
     var circleImageSize = CGSize()
+    var accessoryMap = [NIDiscoveryToken: String]() // A mapping from a discovery token to a name.
     
-    // Speech
+    // MARK: - Speech
     var speechSynthesizer = AVSpeechSynthesizer()
     var speechArray = ["searching for car",
                        "light too low",
@@ -136,41 +137,31 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     var activeState : Int? = Optional.none
     var prevText : String? = Optional.none
     
-    // A mapping from a discovery token to a name.
-    var accessoryMap = [NIDiscoveryToken: String]()
-    
-    // MARK: - Timer
+    // MARK: - Variables
+    // Timers
     var connectionTimer = Timer()
     weak var hapticFeedbackTimer: Timer?
     weak var audioTimer: Timer?
     var timeInterval = 0.01
     var timerCounter: Float = 0.0
     
-    // MARK: - Default values
-    let DIST_MAX : Float = 999999.0
-    let YAW_MAX : Float = 999.0
-    let HEADING_MAX : Double = 999.0
+    // Default values
     let CLOSE_RANGE : Float = 2.0 / 3.0
     var thresholdValue : Float = 90.0
-    
-    // MARK: - Car location
-    var destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
     
     // GPS location storage
     var car_distance: Float = 999999.0
     var car_yaw: Float = 999.0
+    var destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
     
     // uwb location storage
-    var uwb_distance : Float = 999999.0
-    var uwb_yaw : Float = 999.0
-    var uwb_pitch : Float = 999.0
-    var last_position = SCNVector3()
+    var uwb_distance : Float? = Optional.none
+    var uwb_yaw : Float? = Optional.none
+    var uwb_pitch : Float? = Optional.none
     var prevDirection : Float? = Optional.none
-    
-    var distanceFilter = KalmanFilter(stateEstimatePrior: 0.0, errorCovariancePrior: 1)
-    
-    // counter for uwb updates
     var iterations : Int = 0
+    
+    //var distanceFilter = KalmanFilter(stateEstimatePrior: 0.0, errorCovariancePrior: 1)
     
     // MARK: - Text formmatting
     let attributes1 = [NSAttributedString.Key.font : UIFont.systemFont(ofSize: 50, weight: UIFont.Weight.bold), NSAttributedString.Key.foregroundColor : UIColor.label] //primary
@@ -598,13 +589,13 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             speechSynthesizer.stopSpeaking(at: .word)
         }
         
-        if uwb_distance < DIST_MAX {
+        if let distance = uwb_distance {
             var format = "%0.0f"
-            if uwb_distance < CLOSE_RANGE {
+            if distance < CLOSE_RANGE {
                 format = "%0.1f"
             }
-            let distanceFill = String(format: format, uwb_distance * 3.280839895)
-            if uwb_distance < 1.0 / 3.0 {
+            let distanceFill = String(format: format, distance * 3.280839895)
+            if distance < 1.0 / 3.0 {
                 let attributedString1 = NSMutableAttributedString(string: "Within ", attributes: attributes2)
                 let attributedString2 = NSMutableAttributedString(string: "1 ", attributes: attributes1)
                 let attributedString3 = NSMutableAttributedString(string: "foot\n", attributes: attributes2)
@@ -616,7 +607,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 
                 circleImage.isHidden = false
                 circleImage.bounds.size = CGSize(width: CGFloat(0.5) * circleImageSize.width, height: CGFloat(0.5) * circleImageSize.height)
-            } else if uwb_distance < CLOSE_RANGE {
+            } else if distance < CLOSE_RANGE {
                 let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
                 let attributedString2 = NSMutableAttributedString(string: "ft\n", attributes: attributes2)
                 let attributedString3 = NSMutableAttributedString(string: "nearby", attributes: attributes1)
@@ -627,11 +618,11 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 directionDescriptionLabel.attributedText = attributedString1
                 
                 circleImage.isHidden = false
-                let scale = CGFloat(uwb_distance / CLOSE_RANGE / 2.0 + 0.5)
+                let scale = CGFloat(distance / CLOSE_RANGE / 2.0 + 0.5)
                 circleImage.bounds.size = CGSize(width: scale * circleImageSize.width, height: scale * circleImageSize.height)
             } else {
-                if uwb_yaw < YAW_MAX {
-                    let desc = directionNaturalLanguage(degrees: uwb_yaw)
+                if let yaw = uwb_yaw {
+                    let desc = directionNaturalLanguage(degrees: yaw)
                     let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
                     let attributedString2 = NSMutableAttributedString(string: "ft\n\(desc.0)", attributes: attributes2)
                     let attributedString3 = NSMutableAttributedString(string: " \(desc.1)", attributes: attributes1)
@@ -665,9 +656,9 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             circleImage.isHidden = true
         }
         
-        if uwb_yaw < YAW_MAX && circleImage.isHidden {
+        if let yaw = uwb_yaw, circleImage.isHidden {
             arrowImage.isHidden = false
-            arrowImage.transform = arrowImage.transform.rotated(by: (CGFloat(uwb_yaw) - atan2(arrowImage.transform.b, arrowImage.transform.a).radiansToDegrees).degreesToRadians)
+            arrowImage.transform = arrowImage.transform.rotated(by: (CGFloat(yaw) - atan2(arrowImage.transform.b, arrowImage.transform.a).radiansToDegrees).degreesToRadians)
         } else {
             arrowImage.isHidden = true
         }
@@ -713,6 +704,29 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         return abs(azimuth(from: direction).radiansToDegrees) < thresholdValue && abs(elevation(from: direction).radiansToDegrees) < 90.0
     }
     
+    func isValidData(direction: Float) -> Bool {
+        // check if distance update is valid, cancel tracking if so
+        // need to check if direction flips while distance stays same
+        print(direction.radiansToDegrees, prevDirection?.radiansToDegrees)
+        if let dir = prevDirection, uwb_distance! > CLOSE_RANGE && abs(abs(direction) - abs(dir)) > .pi / 8.0 {
+            prevDirection = nil
+            uwb_distance = nil
+            uwb_yaw = nil
+            iterations = 0
+            thresholdValue = 90.0
+            if let accessory = storedObject, shouldRetry(accessory) {
+                sendDataToAccessory(Data([MessageId.stop.rawValue]))
+                sendDataToAccessory(Data([MessageId.initialize.rawValue]))
+            } else {
+                print("Stop experiment, error detected")
+            }
+            calibrating = true
+            return false
+        }
+        prevDirection = direction
+        return true
+    }
+    
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
         guard let accessory = nearbyObjects.first else { return }
         
@@ -746,14 +760,11 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 iterations += 1
                 calibrating = false
             }
-//            if let distance = accessory.distance, let direction = accessory.direction, isValidDirection(direction: direction) {
-//                calibrating = false
-//            }
             
             if !calibrating {
                 if let distance = accessory.distance {
                     if distance == 0.0 {
-                        if uwb_distance < 0.03 {
+                        if uwb_distance != nil && uwb_distance! < 0.03 {
                             uwb_distance = distance
                         }
                     } else if let _ = accessory.direction {
@@ -772,24 +783,16 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                     uwb_distance = distance3D()
                 }
                 
+                if uwb_distance == nil {
+                    return
+                }
+                
                 if let direction = accessory.direction, isValidDirection(direction: direction) {
                     let azimuth = azimuth(from: direction)
                     let elevation = elevation(from: direction)
                     
                     // check if distance update is valid, cancel tracking if so
-                    // need to check if direction flips while distance stays same
-                    //print(azimuth.radiansToDegrees, prevDirection?.radiansToDegrees)
-                    if let dir = prevDirection, uwb_distance > CLOSE_RANGE && abs(abs(azimuth) - abs(dir)) > .pi / 16.0 {
-                        prevDirection = nil
-                        uwb_yaw = 999.0
-                        iterations = 0
-                        thresholdValue = 90.0
-                        sendDataToAccessory(Data([MessageId.stop.rawValue]))
-                        sendDataToAccessory(Data([MessageId.initialize.rawValue]))
-                        calibrating = true
-                        return
-                    }
-                    prevDirection = azimuth
+                    if !isValidData(direction: azimuth) { return }
                     
                     guard let camera = sceneView.session.currentFrame?.camera else { return }
                     boxNode.simdEulerAngles = direction
@@ -798,8 +801,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                     let pitch = pov.x + elevation
                     let yaw = -pov.y + azimuth
                     
-                    let y = uwb_distance * sin(pitch)
-                    let _uwb_distance = sqrt(uwb_distance * uwb_distance - y * y)
+                    let y = uwb_distance! * sin(pitch)
+                    let _uwb_distance = sqrt(uwb_distance! * uwb_distance! - y * y)
                     let x = _uwb_distance * sin(yaw)
                     let z = -_uwb_distance * cos(yaw)
                     
@@ -877,24 +880,13 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                     }
                     
                     // check if distance update is valid, cancel tracking if so
-                    // need to check if direction flips while distance stays same
-                    // print(yaw.radiansToDegrees, prevDirection?.radiansToDegrees)
-                    if let dir = prevDirection, uwb_distance > CLOSE_RANGE && abs(abs(yaw) - abs(dir)) > .pi / 16.0 {
-                        prevDirection = nil
-                        uwb_yaw = 999.0
-                        iterations = 0
-                        thresholdValue = 90.0
-                        sendDataToAccessory(Data([MessageId.stop.rawValue]))
-                        sendDataToAccessory(Data([MessageId.initialize.rawValue]))
-                        calibrating = true
-                        return
-                    }
-                    prevDirection = yaw
+                    if !isValidData(direction: yaw) { return }
+                    
                     uwb_yaw = yaw.radiansToDegrees
                 }
                 
-                if uwb_distance < CLOSE_RANGE {
-                    timeInterval = getTimeInterval(distance: uwb_distance)
+                if uwb_distance! < CLOSE_RANGE {
+                    timeInterval = getTimeInterval(distance: uwb_distance!)
                     if hapticFeedbackTimer == nil || !hapticFeedbackTimer!.isValid {
                         hapticFeedbackTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] hapticFeedbackTimer in
                                     self?.closeTap()
@@ -951,6 +943,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         if shouldRetry(accessory) {
             sendDataToAccessory(Data([MessageId.stop.rawValue]))
             sendDataToAccessory(Data([MessageId.initialize.rawValue]))
+        } else {
+            print("Stop experiment, error detected")
         }
     }
     
