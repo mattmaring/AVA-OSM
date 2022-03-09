@@ -67,13 +67,11 @@ class ExperimentViewController: UIViewController {
     }
     
     @IBAction func normalOps(_ sender: Any) {
-        if startExperiment() {
-            let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
-            let mapViewController = storyBoard.instantiateViewController(withIdentifier: "MapViewController") as! MapViewController
-            mapViewController.destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
-            mapViewController.modalPresentationStyle = .fullScreen
-            self.present(mapViewController, animated: true, completion: nil)
-        }
+        let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+        let mapViewController = storyBoard.instantiateViewController(withIdentifier: "MapViewController") as! MapViewController
+        mapViewController.destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
+        mapViewController.modalPresentationStyle = .fullScreen
+        self.present(mapViewController, animated: true, completion: nil)
     }
     
     var menuItems: [UIAction] = []

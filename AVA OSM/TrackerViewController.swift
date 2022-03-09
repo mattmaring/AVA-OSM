@@ -62,9 +62,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         
         sceneView.session.pause()
         
-        connectionTimer.invalidate()
-        hapticFeedbackTimer?.invalidate()
-        
         // Ask the accessory to stop.
         sendDataToAccessory(Data([MessageId.stop.rawValue]))
         
@@ -127,22 +124,34 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     var lightTooLow = false
     var locationManager = CLLocationManager()
     var circleImageSize = CGSize()
-    let speechSynthesizer = AVSpeechSynthesizer()
+    
+    // Speech
+    var speechSynthesizer = AVSpeechSynthesizer()
+    var speechArray = ["searching for car",
+                       "light too low",
+                       "calibrating sensor, please rotate in-place to capture direction information",
+                       "connected",
+                       "disconnected",
+                       ""]
+    var activeState : Int? = Optional.none
+    var prevText : String? = Optional.none
     
     // A mapping from a discovery token to a name.
     var accessoryMap = [NIDiscoveryToken: String]()
     
     // MARK: - Timer
     var connectionTimer = Timer()
-    var hapticFeedbackTimer: Timer?
+    weak var hapticFeedbackTimer: Timer?
+    weak var audioTimer: Timer?
     var timeInterval = 0.01
     var timerCounter: Float = 0.0
     
     // MARK: - Default values
-    let DIST_MAX: Float = 999999.0
-    let YAW_MAX: Float = 999.0
-    let HEADING_MAX: Double = 999.0
-    let CLOSE_RANGE: Float = 1.0
+    let DIST_MAX : Float = 999999.0
+    let YAW_MAX : Float = 999.0
+    let HEADING_MAX : Double = 999.0
+    let CLOSE_RANGE : Float = 2.0 / 3.0
+    var thresholdValue : Float = 90.0
     
     // MARK: - Car location
     var destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
@@ -156,6 +165,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     var uwb_yaw : Float = 999.0
     var uwb_pitch : Float = 999.0
     var last_position = SCNVector3()
+    var prevDirection : Float? = Optional.none
     
     var distanceFilter = KalmanFilter(stateEstimatePrior: 0.0, errorCovariancePrior: 1)
     
@@ -262,6 +272,12 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             sceneView.addSubview(blurView)
         }
+    }
+    
+    deinit {
+        connectionTimer.invalidate()
+        hapticFeedbackTimer?.invalidate()
+        audioTimer?.invalidate()
     }
     
     @objc func restoreSession() {
@@ -447,7 +463,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
     }
     
-    @objc func closeTap() {
+    func closeTap() {
         timerCounter += 0.01
         if timerCounter >= Float(timeInterval) {
             timerCounter = 0.0
@@ -490,11 +506,11 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             return ("back", "left")
         } else if degrees >= -135.0 && degrees <= -45.0 {
             return ("to your", "left")
-        } else if degrees > -45.0 && degrees < -15.0 {
+        } else if degrees > -45.0 && degrees < -22.5 {
             return ("slightly", "left")
-        } else if degrees >= -15.0 && degrees <= 15.0 {
+        } else if degrees >= -22.5 && degrees <= 22.5 {
             return ("straight", "ahead")
-        } else if degrees > 15.0 && degrees < 45.0 {
+        } else if degrees > 22.5 && degrees < 45.0 {
             return ("slightly", "right")
         } else if degrees >= 45.0 && degrees <= 135.0 {
             return ("to your", "right")
@@ -502,6 +518,39 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             return ("back", "right")
         } else {
             return ("straight", "behind")
+        }
+    }
+    
+    func audioHandle(index: Int) {
+        if activeState != nil {
+            if activeState != index {
+                speechSynthesizer.stopSpeaking(at: .word)
+            } else {
+                return
+            }
+        }
+        
+        // Disconnect
+        if index == 4 {
+            prevText = nil
+        }
+        
+        let utterance = AVSpeechUtterance(string: speechArray[index])
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        //utterance.rate = 1.0
+        speechSynthesizer.speak(utterance)
+        activeState = index
+    }
+    
+    func readDistance() {
+        if activeState != nil {
+            activeState = nil
+        }
+        if let string = directionDescriptionLabel.text {
+            let utterance = AVSpeechUtterance(string: string)
+            utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+            //utterance.rate = 1.0
+            speechSynthesizer.speak(utterance)
         }
     }
     
@@ -517,19 +566,36 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             circleImage.isHidden = true
             arrowImage.isHidden = true
             directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Light too low", attributes: attributes1)
+            audioHandle(index: 1)
             return
         } else if calibrating {
             hapticFeedbackTimer?.invalidate()
             circleImage.isHidden = true
             arrowImage.isHidden = true
             directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Calibrating", attributes: attributes1)
+            audioHandle(index: 2)
             return
         } else if searching {
             hapticFeedbackTimer?.invalidate()
             circleImage.isHidden = true
             arrowImage.isHidden = true
             directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Searching for car", attributes: attributes1)
+            audioHandle(index: 0)
             return
+        }
+        
+        if uwbConnectionActive {
+            if prevText == nil {
+                audioHandle(index: 3)
+                prevText = ""
+            }
+        } else {
+            audioHandle(index: 4)
+            if audioTimer != nil {
+                audioTimer!.invalidate()
+                audioTimer = nil
+            }
+            speechSynthesizer.stopSpeaking(at: .word)
         }
         
         if uwb_distance < DIST_MAX {
@@ -538,7 +604,19 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 format = "%0.1f"
             }
             let distanceFill = String(format: format, uwb_distance * 3.280839895)
-            if uwb_distance < CLOSE_RANGE {
+            if uwb_distance < 1.0 / 3.0 {
+                let attributedString1 = NSMutableAttributedString(string: "Within ", attributes: attributes2)
+                let attributedString2 = NSMutableAttributedString(string: "1 ", attributes: attributes1)
+                let attributedString3 = NSMutableAttributedString(string: "foot\n", attributes: attributes2)
+                
+                attributedString1.append(attributedString2)
+                attributedString1.append(attributedString3)
+                
+                directionDescriptionLabel.attributedText = attributedString1
+                
+                circleImage.isHidden = false
+                circleImage.bounds.size = CGSize(width: CGFloat(0.5) * circleImageSize.width, height: CGFloat(0.5) * circleImageSize.height)
+            } else if uwb_distance < CLOSE_RANGE {
                 let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
                 let attributedString2 = NSMutableAttributedString(string: "ft\n", attributes: attributes2)
                 let attributedString3 = NSMutableAttributedString(string: "nearby", attributes: attributes1)
@@ -572,6 +650,11 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 }
                 circleImage.isHidden = true
             }
+            if let text = prevText, text != directionDescriptionLabel.text {
+                speechSynthesizer.stopSpeaking(at: .word)
+                readDistance()
+                prevText = directionDescriptionLabel.text
+            }
         } else {
             let attributedString1 = NSMutableAttributedString(string: "\n-.--", attributes: attributes1)
             let attributedString2 = NSMutableAttributedString(string: " ft", attributes: attributes2)
@@ -593,11 +676,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     // MARK: AVSpeechSynthesizer
     
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
-        
     }
     
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        speechSynthesizer.stopSpeaking(at: .word)
+        speechSynthesizer.stopSpeaking(at: .immediate)
     }
     
     // MARK: - NISessionDelegate
@@ -628,7 +710,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     }
     
     func isValidDirection(direction: simd_float3) -> Bool {
-        return abs(azimuth(from: direction).radiansToDegrees) < 22.5 && abs(elevation(from: direction).radiansToDegrees) < 60.0
+        return abs(azimuth(from: direction).radiansToDegrees) < thresholdValue && abs(elevation(from: direction).radiansToDegrees) < 90.0
     }
     
     func session(_ session: NISession, didUpdate nearbyObjects: [NINearbyObject]) {
@@ -653,24 +735,20 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
 
     func updateObject() {
         if let accessory = storedObject, accessoryConnected /*&& !arrived*/ && !lightTooLow && uwbConnectionActive {
-//            if iterations < 5 {
-//                if let _ = accessory.distance, let direction = accessory.direction, isValidDirection(direction: direction) {
-//                    iterations += 1
-//                } else {
-//                    let string = "calibrating sensor, please rotate in-place to capture direction information"
-//                    let utterance = AVSpeechUtterance(string: string)
-//                    utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-//                    speechSynthesizer.speak(utterance)
-//                }
-//            } else if iterations == 5 {
-//                speechSynthesizer.stopSpeaking(at: .immediate)
-//                iterations += 1
-//                calibrating = false
-//                speechSynthesizer.stopSpeaking(at: .word)
-//            }
-            if let distance = accessory.distance, let direction = accessory.direction, isValidDirection(direction: direction) {
+            if iterations < 3 {
+                //print(iterations, thresholdValue)
+                if let _ = accessory.distance, let direction = accessory.direction, isValidDirection(direction: direction) {
+                    iterations += 1
+                    thresholdValue -= 22.5
+                }
+            } else if iterations == 3 {
+                //print(iterations, thresholdValue)
+                iterations += 1
                 calibrating = false
             }
+//            if let distance = accessory.distance, let direction = accessory.direction, isValidDirection(direction: direction) {
+//                calibrating = false
+//            }
             
             if !calibrating {
                 if let distance = accessory.distance {
@@ -694,13 +772,24 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                     uwb_distance = distance3D()
                 }
                 
-                // check if distance update is valid, cancel tracking if so
-                
-                // need to check if direction flips while distance stays same
-                
                 if let direction = accessory.direction, isValidDirection(direction: direction) {
                     let azimuth = azimuth(from: direction)
                     let elevation = elevation(from: direction)
+                    
+                    // check if distance update is valid, cancel tracking if so
+                    // need to check if direction flips while distance stays same
+                    //print(azimuth.radiansToDegrees, prevDirection?.radiansToDegrees)
+                    if let dir = prevDirection, uwb_distance > CLOSE_RANGE && abs(abs(azimuth) - abs(dir)) > .pi / 16.0 {
+                        prevDirection = nil
+                        uwb_yaw = 999.0
+                        iterations = 0
+                        thresholdValue = 90.0
+                        sendDataToAccessory(Data([MessageId.stop.rawValue]))
+                        sendDataToAccessory(Data([MessageId.initialize.rawValue]))
+                        calibrating = true
+                        return
+                    }
+                    prevDirection = azimuth
                     
                     guard let camera = sceneView.session.currentFrame?.camera else { return }
                     boxNode.simdEulerAngles = direction
@@ -724,7 +813,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 } else if cubeMoved() {
                     guard let camera = sceneView.session.currentFrame?.camera else { return }
                     guard let position = sceneView.pointOfView?.position else { return }
-                    //print(position, camera.eulerAngles.y)
+                    // print(position, camera.eulerAngles.y)
 
                     //uwb_data.text = "\(position.x) | \(boxNode.position.x)"
                     
@@ -786,13 +875,30 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                     } else if yaw > .pi {
                         yaw -= 2 * .pi
                     }
+                    
+                    // check if distance update is valid, cancel tracking if so
+                    // need to check if direction flips while distance stays same
+                    // print(yaw.radiansToDegrees, prevDirection?.radiansToDegrees)
+                    if let dir = prevDirection, uwb_distance > CLOSE_RANGE && abs(abs(yaw) - abs(dir)) > .pi / 16.0 {
+                        prevDirection = nil
+                        uwb_yaw = 999.0
+                        iterations = 0
+                        thresholdValue = 90.0
+                        sendDataToAccessory(Data([MessageId.stop.rawValue]))
+                        sendDataToAccessory(Data([MessageId.initialize.rawValue]))
+                        calibrating = true
+                        return
+                    }
+                    prevDirection = yaw
                     uwb_yaw = yaw.radiansToDegrees
                 }
                 
                 if uwb_distance < CLOSE_RANGE {
                     timeInterval = getTimeInterval(distance: uwb_distance)
-                    if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
-                        hapticFeedbackTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(closeTap), userInfo: nil, repeats: true)
+                    if hapticFeedbackTimer == nil || !hapticFeedbackTimer!.isValid {
+                        hapticFeedbackTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] hapticFeedbackTimer in
+                                    self?.closeTap()
+                                }
                     }
                 } else {
                     hapticFeedbackTimer?.invalidate()

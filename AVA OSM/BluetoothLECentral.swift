@@ -24,6 +24,7 @@ class DataCommunicationChannel: NSObject {
 
     var discoveredPeripheral: CBPeripheral?
     var discoveredPeripheralName: String?
+    var discoveredAdvertisement: [String: Any]?
     var rxCharacteristic: CBCharacteristic?
     var txCharacteristic: CBCharacteristic?
     var writeIterationsComplete = 0
@@ -198,6 +199,7 @@ extension DataCommunicationChannel: CBCentralManagerDelegate {
             // Save a local copy of the peripheral so Core Bluetooth doesn't
             // deallocate it.
             discoveredPeripheral = peripheral
+            discoveredAdvertisement = advertisementData
             
             // Connect to the peripheral.
             logger.info("Connecting to perhiperal \(peripheral)")
@@ -217,9 +219,13 @@ extension DataCommunicationChannel: CBCentralManagerDelegate {
     // Discovers the services and characteristics to find the 'TransferService'
     // characteristic after peripheral connection.
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        
+        print(discoveredPeripheral, discoveredPeripheralName)
+        
         if let didConnectHandler = accessoryConnectedHandler {
             // TODO
             // Sometimes: Unexpectedly found nil while unwrapping an Optional value
+            print("HEEEERRRREEE$$$$$$:", discoveredPeripheralName)
             didConnectHandler(discoveredPeripheralName!)
         }
         

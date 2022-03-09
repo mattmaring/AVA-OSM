@@ -275,12 +275,18 @@
                             </arscnView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Finding" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fqK-wD-1kZ" userLabel="Title Detail">
                                 <rect key="frame" x="20" y="60" width="374" height="36"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <bool key="isElement" value="NO"/>
+                                </accessibility>
                                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="30"/>
                                 <color key="textColor" systemColor="secondaryLabelColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Your Ride" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="17j-0l-9Tv" userLabel="Title Destination">
                                 <rect key="frame" x="20" y="104" width="374" height="60"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <bool key="isElement" value="NO"/>
+                                </accessibility>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="50"/>
                                 <nil key="highlightedColor"/>
                             </label>
@@ -348,10 +354,10 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bLE-pI-7We">
+                            <button opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bLE-pI-7We">
                                 <rect key="frame" x="215" y="782" width="179" height="80"/>
                                 <accessibility key="accessibilityConfiguration">
-                                    <accessibilityTraits key="traits" button="YES" notEnabled="YES"/>
+                                    <accessibilityTraits key="traits" notEnabled="YES"/>
                                     <bool key="isElement" value="NO"/>
                                 </accessibility>
                                 <constraints>
@@ -385,7 +391,8 @@
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Dy8-6L-KTt" userLabel="Direction Description">
                                 <rect key="frame" x="20" y="654" width="374" height="119.5"/>
                                 <accessibility key="accessibilityConfiguration">
-                                    <accessibilityTraits key="traits" staticText="YES" updatesFrequently="YES"/>
+                                    <accessibilityTraits key="traits" updatesFrequently="YES"/>
+                                    <bool key="isElement" value="NO"/>
                                 </accessibility>
                                 <string key="text">20 ft
 straight ahead</string>

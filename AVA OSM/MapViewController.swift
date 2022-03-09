@@ -203,6 +203,12 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     let parking_distance = "300 feet"
     let parking_type = "circular driveway in front of Penobscot Hall"
     
+    let pois = ["in 10 ft, there are stairs straight ahead",
+                "in 10 ft, there is a bench on your left",
+                "in 8 ft, there is a tree close by to the left of the sidewalk",
+                "in ",
+                ""]
+    
     let contrastLabel = UIColor(named: "contrastLabelColor")
     
     // MARK: - viewDidLoad
