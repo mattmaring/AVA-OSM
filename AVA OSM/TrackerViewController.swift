@@ -57,6 +57,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     @IBOutlet weak var uwb_data: UILabel!
     
     @IBAction func cancelAction(_ sender: Any) {
+        speechSynthesizer.stopSpeaking(at: .immediate)
+        
         locationManager.stopUpdatingLocation()
         locationManager.stopUpdatingHeading()
         
@@ -360,71 +362,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
 //        }
     }
     
-    // MARK: - Update GPS Directions
-    
-//    func updateDirections() {
-//        // Update distance
-//        if let distance = locationManager.location?.distance(from: destination) {
-//            car_distance = Float(distance)
-//        } else {
-//            car_distance = DIST_MAX
-//        }
-//
-//        // Update direction
-//        if let coordinate = locationManager.location?.coordinate {
-//            car_yaw = haversine(from: destination.coordinate, to: coordinate)
-//        } else {
-//            car_yaw = YAW_MAX
-//        }
-//
-//        if let heading = locationManager.heading?.trueHeading {
-//            if car_yaw < 0.0 {
-//                let result = car_yaw + 180.0 - Float(heading)
-//                if result < -180.0 {
-//                    car_yaw = 360.0 + result
-//                } else {
-//                    car_yaw = result
-//                }
-//            } else if car_yaw != YAW_MAX {
-//                let result = car_yaw - 180.0 - Float(heading)
-//                if result < -180.0 {
-//                    car_yaw = 360.0 + result
-//                } else {
-//                    car_yaw = result
-//                }
-//            } else {
-//                car_yaw = YAW_MAX
-//            }
-//        } else {
-//            car_yaw = YAW_MAX
-//        }
-//
-//        if uwbConnectionActive == false {
-//            if car_distance < CLOSE_RANGE {
-//                timeInterval = getTimeInterval(distance: car_distance)
-//                if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
-//                    hapticFeedbackTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(closeTap), userInfo: nil, repeats: true)
-//                }
-//            } else {
-//                hapticFeedbackTimer?.invalidate()
-//            }
-//            updateVisualization(distance: car_distance, yaw: car_yaw)
-//            renderingOutput += "\(dateFormat.string(from: Date())), \(car_distance), \(car_yaw)\n"
-//            //print("\(dateFormat.string(from: Date())), \(car_distance), \(car_yaw)")
-//            if let stringData = renderingOutput.data(using: .utf8) {
-//                try? stringData.write(to: renderingPath!)
-//            }
-//
-//            if let location = locationManager.location {
-//                let coordinate = location.coordinate
-//                coreLocationOutput += "\(dateFormat.string(from: Date())), \(car_distance * 3.280839895), \(car_yaw), \(coordinate.longitude), \(coordinate.latitude), \(location.altitude), \(location.course), \(location.speed), \(location.horizontalAccuracy), \(location.verticalAccuracy), \(location.horizontalAccuracy), \(location.speedAccuracy)\n"
-//            }
-//            if let stringData = coreLocationOutput.data(using: .utf8) {
-//                try? stringData.write(to: coreLocationPath!)
-//            }
-//        }
-//    }
-    
     // MARK: - Haptic Feedback
     
     func getTimeInterval(distance: Float) -> TimeInterval {
@@ -515,7 +452,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     func audioHandle(index: Int) {
         if activeState != nil {
             if activeState != index {
-                speechSynthesizer.stopSpeaking(at: .word)
+                speechSynthesizer.stopSpeaking(at: .immediate)
             } else {
                 return
             }
@@ -538,6 +475,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             activeState = nil
         }
         if let string = directionDescriptionLabel.text {
+            speechSynthesizer.stopSpeaking(at: .word)
             let utterance = AVSpeechUtterance(string: string)
             utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
             //utterance.rate = 1.0
@@ -642,7 +580,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 circleImage.isHidden = true
             }
             if let text = prevText, text != directionDescriptionLabel.text {
-                speechSynthesizer.stopSpeaking(at: .word)
                 readDistance()
                 prevText = directionDescriptionLabel.text
             }
@@ -708,7 +645,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         // check if distance update is valid, cancel tracking if so
         // need to check if direction flips while distance stays same
         print(direction.radiansToDegrees, prevDirection?.radiansToDegrees)
-        if let dir = prevDirection, uwb_distance! > CLOSE_RANGE && abs(abs(direction) - abs(dir)) > .pi / 8.0 {
+        if let dir = prevDirection, uwb_distance! > CLOSE_RANGE && abs(abs(direction) - abs(dir)) > .pi / 12.0 {
             prevDirection = nil
             uwb_distance = nil
             uwb_yaw = nil
@@ -850,9 +787,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                     //         = 33.7º
                     // Should be 33.7º - 90.0º = -56.3º
                     
-                    // error dection
-                    
-                    
                     // Check direction scenarios
                     var move_angle : Float
                     if position.x < boxNode.position.x {
@@ -906,30 +840,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     }
 
     func session(_ session: NISession, didRemove nearbyObjects: [NINearbyObject], reason: NINearbyObject.RemovalReason) {
-//        guard let peerToken = peerDiscoveryToken else {
-//            fatalError("don't have peer token")
-//        }
-//
-//        let peerObj = nearbyObjects.first { (obj) -> Bool in
-//            return obj.discoveryToken == peerToken
-//        }
-//
-//        if peerObj == nil {
-//            return
-//        }
-//
-//        switch reason {
-//        case .peerEnded:
-//            peerDiscoveryToken = nil
-//            session.invalidate()
-//            initiateSession()
-//        case .timeout:
-//            if let config = session.configuration {
-//                session.run(config)
-//            }
-//        default:
-//            fatalError("Unknown and unhandled NINearbyObject.RemovalReason")
-//        }
         // Retry the session only if the peer timed out.
         guard reason == .timeout else { return }
 

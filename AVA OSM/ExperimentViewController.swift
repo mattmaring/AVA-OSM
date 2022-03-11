@@ -36,13 +36,12 @@ class ExperimentViewController: UIViewController {
     }
     
     @IBAction func phase1GPS(_ sender: Any) {
-        // Need to lock this to GPS
         if startExperiment() {
             let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
-            let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
-            trackerViewController.destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
-            trackerViewController.modalPresentationStyle = .fullScreen
-            self.present(trackerViewController, animated: true, completion: nil)
+            let gpsViewController = storyBoard.instantiateViewController(withIdentifier: "GPSViewController") as! GPSViewController
+            gpsViewController.destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
+            gpsViewController.modalPresentationStyle = .fullScreen
+            self.present(gpsViewController, animated: true, completion: nil)
         }
     }
     

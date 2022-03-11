@@ -24,6 +24,7 @@
 		C080499B27AA0EC20078C00E /* ExperimentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C080499A27AA0EC20078C00E /* ExperimentViewController.swift */; };
 		C098B73D269CB0CF0024D77F /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73C269CB0CF0024D77F /* MapViewController.swift */; };
 		C098B73F269CB8880024D77F /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73E269CB8880024D77F /* TableViewController.swift */; };
+		C099772D27DAF19700EC732C /* GPSViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C099772C27DAF19700EC732C /* GPSViewController.swift */; };
 		C0B19C5A27B864D40055CB74 /* KalmanFilter in Frameworks */ = {isa = PBXBuildFile; productRef = C0B19C5927B864D40055CB74 /* KalmanFilter */; };
 		C0EF9D4726A745F9009CF3E8 /* NearbyInteraction.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */; };
 		C0EF9D4926A74604009CF3E8 /* MultipeerConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0EF9D4826A74604009CF3E8 /* MultipeerConnectivity.framework */; };
@@ -69,6 +70,7 @@
 		C080499A27AA0EC20078C00E /* ExperimentViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperimentViewController.swift; sourceTree = "<group>"; };
 		C098B73C269CB0CF0024D77F /* MapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
 		C098B73E269CB8880024D77F /* TableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewController.swift; sourceTree = "<group>"; };
+		C099772C27DAF19700EC732C /* GPSViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPSViewController.swift; sourceTree = "<group>"; };
 		C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NearbyInteraction.framework; path = System/Library/Frameworks/NearbyInteraction.framework; sourceTree = SDKROOT; };
 		C0EF9D4826A74604009CF3E8 /* MultipeerConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MultipeerConnectivity.framework; path = System/Library/Frameworks/MultipeerConnectivity.framework; sourceTree = SDKROOT; };
 		C0EF9D4A26A74639009CF3E8 /* TrackerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerViewController.swift; sourceTree = "<group>"; };
@@ -135,6 +137,7 @@
 				C098B73C269CB0CF0024D77F /* MapViewController.swift */,
 				C098B73E269CB8880024D77F /* TableViewController.swift */,
 				C0EF9D4A26A74639009CF3E8 /* TrackerViewController.swift */,
+				C099772C27DAF19700EC732C /* GPSViewController.swift */,
 				C065539727033EA7001036AF /* ARWorldAnchor.swift */,
 				C0154E6D2700EAE9005B9727 /* MPCSession.swift */,
 				C020811B2730F19B0017CD6A /* BluetoothLECentral.swift */,
@@ -343,6 +346,7 @@
 				C0EF9D4B26A74639009CF3E8 /* TrackerViewController.swift in Sources */,
 				C080499B27AA0EC20078C00E /* ExperimentViewController.swift in Sources */,
 				C065539827033EA7001036AF /* ARWorldAnchor.swift in Sources */,
+				C099772D27DAF19700EC732C /* GPSViewController.swift in Sources */,
 				C098B73F269CB8880024D77F /* TableViewController.swift in Sources */,
 				C098B73D269CB0CF0024D77F /* MapViewController.swift in Sources */,
 				C0154E6E2700EAE9005B9727 /* MPCSession.swift in Sources */,
