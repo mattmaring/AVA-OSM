@@ -19,7 +19,7 @@ class ExperimentViewController: UIViewController {
         if startExperiment() {
             let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
             let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
-            trackerViewController.destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
+            trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
             trackerViewController.modalPresentationStyle = .fullScreen
             self.present(trackerViewController, animated: true, completion: nil)
         }
@@ -29,7 +29,7 @@ class ExperimentViewController: UIViewController {
         if startExperiment() {
             let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
             let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
-            trackerViewController.destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
+            trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
             trackerViewController.modalPresentationStyle = .fullScreen
             self.present(trackerViewController, animated: true, completion: nil)
         }
@@ -39,7 +39,7 @@ class ExperimentViewController: UIViewController {
         if startExperiment() {
             let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
             let gpsViewController = storyBoard.instantiateViewController(withIdentifier: "GPSViewController") as! GPSViewController
-            gpsViewController.destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
+            gpsViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
             gpsViewController.modalPresentationStyle = .fullScreen
             self.present(gpsViewController, animated: true, completion: nil)
         }
@@ -49,7 +49,7 @@ class ExperimentViewController: UIViewController {
         if startExperiment() {
             let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
             let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
-            trackerViewController.destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
+            trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
             trackerViewController.modalPresentationStyle = .fullScreen
             self.present(trackerViewController, animated: true, completion: nil)
         }

@@ -112,6 +112,8 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
             if (CLLocationManager.headingAvailable()) {
                 locationManager.startUpdatingHeading()
             }
+            
+            prevText = ""
         }
         
         arrowImage.isHidden = true
@@ -270,23 +272,31 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
     
     // MARK: - Visualizations
     
-    func directionNaturalLanguage(degrees: Float) -> (String, String) {
-        if degrees > -165.0 && degrees < -135.0 {
-            return ("back", "left")
-        } else if degrees >= -135.0 && degrees <= -45.0 {
-            return ("to your", "left")
-        } else if degrees > -45.0 && degrees < -22.5 {
-            return ("slightly", "left")
-        } else if degrees >= -22.5 && degrees <= 22.5 {
-            return ("straight", "ahead")
-        } else if degrees > 22.5 && degrees < 45.0 {
-            return ("slightly", "right")
-        } else if degrees >= 45.0 && degrees <= 135.0 {
-            return ("to your", "right")
-        } else if degrees > 135.0 && degrees < 165.0 {
-            return ("back", "right")
+    func directionNaturalLanguage(degrees: Float) -> (String, String, String) {
+        if degrees >= -165.0 && degrees < -135.0 {
+            return ("at", "7", "o'clock")
+        } else if degrees >= -135.0 && degrees < -105.0 {
+            return ("at", "8", "o'clock")
+        } else if degrees >= -105.0 && degrees < -75.0 {
+            return ("to your", "left", "")
+        } else if degrees >= -75.0 && degrees < -45.0 {
+            return ("at", "10", "o'clock")
+        } else if degrees >= -45.0 && degrees < -15.0 {
+            return ("at", "11", "o'clock")
+        } else if degrees >= -15.0 && degrees <= 15.0 {
+            return ("straight", "ahead", "")
+        } else if degrees > 15.0 && degrees <= 45.0 {
+            return ("at", "1", "o'clock")
+        } else if degrees > 45.0 && degrees <= 75.0 {
+            return ("at", "2", "o'clock")
+        } else if degrees > 75.0 && degrees <= 105.0 {
+            return ("to your", "right", "")
+        } else if degrees > 105.0 && degrees <= 135.0 {
+            return ("at", "4", "o'clock")
+        } else if degrees > 135.0 && degrees <= 165.0 {
+            return ("at", "5", "o'clock")
         } else {
-            return ("straight", "behind")
+            return ("straight", "behind", "")
         }
     }
     
@@ -370,9 +380,11 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
                     let attributedString1 = NSMutableAttributedString(string: "\(distanceFill) ", attributes: attributes1)
                     let attributedString2 = NSMutableAttributedString(string: "ft\n\(desc.0)", attributes: attributes2)
                     let attributedString3 = NSMutableAttributedString(string: " \(desc.1)", attributes: attributes1)
+                    let attributedString4 = NSMutableAttributedString(string: " \(desc.2)", attributes: attributes2)
                     
                     attributedString1.append(attributedString2)
                     attributedString1.append(attributedString3)
+                    attributedString1.append(attributedString4)
                     
                     directionDescriptionLabel.attributedText = attributedString1
                 } else {
