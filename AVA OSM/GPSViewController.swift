@@ -68,6 +68,7 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
     var car_distance : Float? = Optional.none
     var car_yaw : Float? = Optional.none
     var destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
+    var prevDirection : Float? = Optional.none
     
     //var distanceFilter = KalmanFilter(stateEstimatePrior: 0.0, errorCovariancePrior: 1)
     
@@ -210,6 +211,16 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
         } else {
             car_yaw = nil
         }
+        
+        if prevDirection != nil && car_yaw != nil && car_distance! > CLOSE_RANGE {
+            if abs(prevDirection!) >= 10.0 && abs(car_yaw!) < 10.0 {
+                pointingTap()
+                pointingTap()
+                pointingTap()
+            }
+        }
+        prevDirection = car_yaw
+        
         if car_distance != nil && car_distance! < CLOSE_RANGE {
             timeInterval = getTimeInterval(distance: car_distance!)
             if ((hapticFeedbackTimer?.isValid) == nil || !hapticFeedbackTimer!.isValid) {
@@ -256,8 +267,8 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
         }
     }
     
-    @objc func pointingTap() {
-        let generator = UIImpactFeedbackGenerator(style: .medium)
+    func pointingTap() {
+        let generator = UIImpactFeedbackGenerator(style: .rigid)
         generator.impactOccurred()
     }
     
@@ -348,7 +359,13 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
             if distance < CLOSE_RANGE {
                 format = "%0.1f"
             }
-            let distanceFill = String(format: format, distance * 3.280839895)
+            var _distance = distance * 3.280839895
+            if _distance >= 100.0 {
+                _distance = Float(Int(_distance / 10.0) * 10)
+            } else if distance >= 30 {
+                _distance = Float(Int(_distance / 5.0) * 5)
+            }
+            let distanceFill = String(format: format, _distance)
             if distance < 1.0 / 3.0 {
                 let attributedString1 = NSMutableAttributedString(string: "Within ", attributes: attributes2)
                 let attributedString2 = NSMutableAttributedString(string: "1 ", attributes: attributes1)

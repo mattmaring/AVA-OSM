@@ -12,6 +12,7 @@ import MapboxDirections
 import MapboxCoreNavigation
 import MapboxNavigation
 import MapboxMaps
+import AVFoundation
 
 // MARK: - Navigation
 struct Navigation: Codable {
@@ -197,11 +198,14 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
 //    let parking_direction = "straight ahead"
 //    let parking_distance = "15 feet"
 //    let parking_type = "accessible space"
-    let exit_ref_spatial = "side"
-    let building_nickname = "Carnegie Hall"
-    let parking_direction = "left"
-    let parking_distance = "300 feet"
-    let parking_type = "circular driveway in front of Penobscot Hall"
+//    let exit_ref_spatial = "side"
+//    let building_nickname = "Carnegie Hall"
+//    let parking_direction = "left"
+//    let parking_distance = "300 feet"
+//    let parking_type = "circular driveway in front of Penobscot Hall"
+    
+    // MARK: - Speech
+    var speechSynthesizer = AVSpeechSynthesizer()
     
     let pois = ["in 10 ft, there are stairs straight ahead",
                 "in 10 ft, there is a bench on your left",
@@ -227,11 +231,19 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
 //        view.addSubview(poisButton)
 //        view.addSubview(trackerButton)
         
+        //speechSynthesizer.delegate = self
+        
+//        let utterance = AVSpeechUtterance(string: "Your vehicle has arrived to the Eustis Parking Lot! Upon exiting the front entrance of Davis, your autonomous vehicle is located approximately 600ft slightly right from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided.")
+//        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+//        //utterance.rate = 1.0
+//        speechSynthesizer.speak(utterance)
+        
         container.isHidden = true
         poisTextView.isHidden = true
         textView.isHidden = false
         
-        textView.text = "Upon exiting from the \(exit_ref_spatial) entrance of \(building_nickname), your autonomous vehicle is located \(parking_distance) to the \(parking_direction) in the \(parking_type). Use the sensor naviagtion to locate the rear driver side door handle."
+//        textView.text = "Upon exiting from the \(exit_ref_spatial) entrance of \(building_nickname), your autonomous vehicle is located \(parking_distance) to the \(parking_direction) in the \(parking_type). Use the sensor naviagtion to locate the rear driver side door handle."
+        textView.text = "Your vehicle has arrived to the Eustis Parking Lot! Upon exiting the front entrance of Davis, your autonomous vehicle is located approximately 600ft slightly right from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided."
         
         locationManager.requestAlwaysAuthorization()
         if (CLLocationManager.locationServicesEnabled()) {
@@ -297,7 +309,7 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         textView.isHidden = true
         poisTextView.isHidden = false
         
-        poisTextView.text = "While on the walkway, Schoodic Road is located to your right"
+        poisTextView.text = pois[0]
         
         // Since first route is retrieved from response `routeIndex` is set to 0.
         let navigationService = MapboxNavigationService(routeResponse: routeResponse, routeIndex: 0, routeOptions: routeOptions)

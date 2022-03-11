@@ -384,11 +384,9 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
     }
     
-    @objc func pointingTap() {
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        if hapticToggle.isOn {
-            generator.impactOccurred()
-        }
+    func pointingTap() {
+        let generator = UIImpactFeedbackGenerator(style: .rigid)
+        generator.impactOccurred()
     }
     
     func closeTap() {
@@ -654,7 +652,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     func isValidData(direction: Float) -> Bool {
         // check if distance update is valid, cancel tracking if so
         // need to check if direction flips while distance stays same
-        print(direction.radiansToDegrees, prevDirection?.radiansToDegrees)
+        //print(direction.radiansToDegrees, prevDirection?.radiansToDegrees)
         if let dir = prevDirection, uwb_distance! > CLOSE_RANGE && abs(abs(direction) - abs(dir)) > .pi / 12.0 {
             prevDirection = nil
             uwb_distance = nil
@@ -669,6 +667,13 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             }
             calibrating = true
             return false
+        }
+        if let dir = prevDirection, uwb_distance! > CLOSE_RANGE {
+            if abs(dir.radiansToDegrees) >= 10.0 && abs(direction.radiansToDegrees) < 10.0 {
+                pointingTap()
+                pointingTap()
+                pointingTap()
+            }
         }
         prevDirection = direction
         return true

@@ -7,9 +7,10 @@
 
 import UIKit
 import MapKit
+import AVFoundation
 import CoreLocation
 
-class ExperimentViewController: UIViewController {
+class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
     
     //let destination = CLLocation(latitude: 44.564825926200015, longitude: -69.65909124016235)
 
@@ -17,41 +18,33 @@ class ExperimentViewController: UIViewController {
     
     @IBAction func pracPhase1(_ sender: Any) {
         if startExperiment() {
-            let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
-            let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
-            trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
-            trackerViewController.modalPresentationStyle = .fullScreen
-            self.present(trackerViewController, animated: true, completion: nil)
+            experiment = "pracPhase1"
         }
     }
     
     @IBAction func pracPhase2(_ sender: Any) {
         if startExperiment() {
-            let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
-            let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
-            trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
-            trackerViewController.modalPresentationStyle = .fullScreen
-            self.present(trackerViewController, animated: true, completion: nil)
+            experiment = "pracPhase2"
         }
     }
     
     @IBAction func phase1GPS(_ sender: Any) {
         if startExperiment() {
-            let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
-            let gpsViewController = storyBoard.instantiateViewController(withIdentifier: "GPSViewController") as! GPSViewController
-            gpsViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
-            gpsViewController.modalPresentationStyle = .fullScreen
-            self.present(gpsViewController, animated: true, completion: nil)
+            experiment = "phase1GPS"
+            let utterance = AVSpeechUtterance(string: "Your vehicle has arrived! Upon exiting the rear entrance of Davis, your autonomous vehicle is located approximately 30ft slightly left from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided.")
+            utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+            //utterance.rate = 1.0
+            speechSynthesizer.speak(utterance)
         }
     }
     
     @IBAction func phase1UWB(_ sender: Any) {
         if startExperiment() {
-            let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
-            let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
-            trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
-            trackerViewController.modalPresentationStyle = .fullScreen
-            self.present(trackerViewController, animated: true, completion: nil)
+            experiment = "phase1UWB"
+            let utterance = AVSpeechUtterance(string: "Your vehicle has arrived! Upon exiting the rear entrance of Davis, your autonomous vehicle is located approximately 30ft slightly left from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided.")
+            utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+            //utterance.rate = 1.0
+            speechSynthesizer.speak(utterance)
         }
     }
     
@@ -73,12 +66,18 @@ class ExperimentViewController: UIViewController {
         self.present(mapViewController, animated: true, completion: nil)
     }
     
+    // MARK: - Speech
+    var speechSynthesizer = AVSpeechSynthesizer()
+    
     var menuItems: [UIAction] = []
-    var experimentIDTitle = "nil"
+    var experiment : String? = Optional.none
+    var experimentIDTitle : String? = Optional.none
     let experimentIDs = ["000001", "000002", "000003", "000004", "000005", "000006"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        speechSynthesizer.delegate = self
         
         for user in experimentIDs {
             let action = UIAction(title: user) { (action) in
@@ -92,7 +91,7 @@ class ExperimentViewController: UIViewController {
     }
     
     func startExperiment() -> Bool {
-        if experimentIDTitle == "nil" {
+        if experimentIDTitle == nil {
             // Create an alert to request the user select experiment ID.
             let accessAlert = UIAlertController(title: "Missing ID", message: "Please select experiment ID to continue.", preferredStyle: .alert)
             accessAlert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
@@ -102,10 +101,50 @@ class ExperimentViewController: UIViewController {
             
             return false
         } else {
-            print("Startng Experiment")
+            print("Starting Experiment")
             print(experimentIDTitle)
             
             return true
+        }
+    }
+    
+    // MARK: AVSpeechSynthesizer
+    
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+    }
+    
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        speechSynthesizer.stopSpeaking(at: .immediate)
+        print(experiment)
+        if experiment != nil {
+            let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+            switch experiment {
+                case "pracPhase1":
+                    let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
+                    trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
+                    trackerViewController.modalPresentationStyle = .fullScreen
+                    self.present(trackerViewController, animated: true, completion: nil)
+                case "pracPhase2":
+                    let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
+                    trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
+                    trackerViewController.modalPresentationStyle = .fullScreen
+                    self.present(trackerViewController, animated: true, completion: nil)
+                case "phase1GPS":
+                    let gpsViewController = storyBoard.instantiateViewController(withIdentifier: "GPSViewController") as! GPSViewController
+                    gpsViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
+                    gpsViewController.modalPresentationStyle = .fullScreen
+                    self.present(gpsViewController, animated: true, completion: nil)
+                case "phase1UWB":
+                    let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
+                    trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
+                    trackerViewController.modalPresentationStyle = .fullScreen
+                    self.present(trackerViewController, animated: true, completion: nil)
+                default:
+                    let mapViewController = storyBoard.instantiateViewController(withIdentifier: "MapViewController") as! MapViewController
+                    mapViewController.destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
+                    mapViewController.modalPresentationStyle = .fullScreen
+                    self.present(mapViewController, animated: true, completion: nil)
+            }
         }
     }
 
