@@ -47,14 +47,13 @@ enum MessageId: UInt8 {
     case stop = 0xC
 }
 
-class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRendererDelegate, ARSCNViewDelegate, ARSessionDelegate, CLLocationManagerDelegate {
+class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRendererDelegate, ARSCNViewDelegate, ARSessionDelegate, AVSpeechSynthesizerDelegate, CLLocationManagerDelegate {
     
     // MARK: - `IBOutlet` instances
     @IBOutlet weak var directionDescriptionLabel: UILabel!
     @IBOutlet weak var arrowImage: UIImageView!
     @IBOutlet weak var circleImage: UIImageView!
     @IBOutlet weak var sceneView: ARSCNView!
-    @IBOutlet weak var uwb_data: UILabel!
     
     @IBAction func cancelAction(_ sender: Any) {
         speechSynthesizer.stopSpeaking(at: .immediate)
@@ -80,38 +79,24 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         print("Honk Car Horn!")
     }
     
-    @IBOutlet weak var blurToggle: UISwitch!
-    @IBAction func blurToggle(_ sender: Any) {
-        if blurToggle.isOn {
-            let blur = UIBlurEffect(style: .regular)
-            let blurView = UIVisualEffectView(effect: blur)
-            blurView.frame = sceneView.bounds
-            blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            sceneView.addSubview(blurView)
-        } else {
-            for subview in sceneView.subviews {
-                if subview is UIVisualEffectView {
-                    subview.removeFromSuperview()
-                }
-            }
-        }
-    }
+//        if blurToggle.isOn {
+//            let blur = UIBlurEffect(style: .regular)
+//            let blurView = UIVisualEffectView(effect: blur)
+//            blurView.frame = sceneView.bounds
+//            blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+//            sceneView.addSubview(blurView)
+//        } else {
+//            for subview in sceneView.subviews {
+//                if subview is UIVisualEffectView {
+//                    subview.removeFromSuperview()
+//                }
+//            }
+//        }
     
     // MARK: - ARKit variables
     var boxNode = SCNNode()
     let lookingNode = SCNNode()
     var currentCamera = SCNMatrix4()
-    
-    @IBOutlet weak var boxToggle: UISwitch!
-    @IBAction func boxToggle(_ sender: Any) {
-        if boxToggle.isOn {
-            boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.clear
-        } else {
-            boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.white
-        }
-    }
-    
-    @IBOutlet weak var hapticToggle: UISwitch!
     
     // MARK: - Class variables
     var dataChannel = DataCommunicationChannel()
@@ -208,14 +193,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             }
         }
         
-        blurToggle.isOn = true
-        boxToggle.isOn = true
-        hapticToggle.isOn = true
-        
         arrowImage.isHidden = true
         circleImage.isHidden = true
-        uwb_data.text = ""
         
+        speechSynthesizer.delegate = self
         sceneView.session.delegate = self
         
         let doorHandle = ARWWorldAnchor(column3: [0, 0, 0, 1])
@@ -249,22 +230,19 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         let configuration = ARWorldTrackingConfiguration()
         configuration.isLightEstimationEnabled = true
         configuration.worldAlignment = .gravityAndHeading
-        
         configuration.planeDetection = [.horizontal, .vertical]
-        
         sceneView.session.run(configuration)
         
         addBox()
         
         //sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
         
-        if blurToggle.isOn {
-            let blur = UIBlurEffect(style: .regular)
-            let blurView = UIVisualEffectView(effect: blur)
-            blurView.frame = sceneView.bounds
-            blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            sceneView.addSubview(blurView)
-        }
+        // Scene blur
+        let blur = UIBlurEffect(style: .regular)
+        let blurView = UIVisualEffectView(effect: blur)
+        blurView.frame = sceneView.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        sceneView.addSubview(blurView)
     }
     
     deinit {
@@ -387,6 +365,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     func pointingTap() {
         let generator = UIImpactFeedbackGenerator(style: .rigid)
         generator.impactOccurred()
+        generator.impactOccurred()
+        generator.impactOccurred()
     }
     
     func closeTap() {
@@ -394,9 +374,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         if timerCounter >= Float(timeInterval) {
             timerCounter = 0.0
             let generator = UIImpactFeedbackGenerator(style: .heavy)
-            if hapticToggle.isOn {
-                generator.impactOccurred()
-            }
+            generator.impactOccurred()
         }
     }
     
@@ -406,11 +384,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         print("called add box")
         boxNode.geometry = SCNBox(width: 0.05, height: 0.05, length: 0.05, chamferRadius: 0)
         boxNode.position = SCNVector3(0, 0, 0)
-        if boxToggle.isOn {
-            boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.clear
-        } else {
-            boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.white
-        }
+        boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.clear
         sceneView.scene.rootNode.addChildNode(boxNode)
     }
     
@@ -433,25 +407,25 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         } else if degrees >= -135.0 && degrees < -105.0 {
             return ("at", "8", "o'clock")
         } else if degrees >= -105.0 && degrees < -75.0 {
-            return ("to your", "left", "")
+            return ("at", "9", "o'clock")
         } else if degrees >= -75.0 && degrees < -45.0 {
             return ("at", "10", "o'clock")
         } else if degrees >= -45.0 && degrees < -15.0 {
             return ("at", "11", "o'clock")
         } else if degrees >= -15.0 && degrees <= 15.0 {
-            return ("straight", "ahead", "")
+            return ("at", "12", "o'clock")
         } else if degrees > 15.0 && degrees <= 45.0 {
             return ("at", "1", "o'clock")
         } else if degrees > 45.0 && degrees <= 75.0 {
             return ("at", "2", "o'clock")
         } else if degrees > 75.0 && degrees <= 105.0 {
-            return ("to your", "right", "")
+            return ("at", "1", "o'clock")
         } else if degrees > 105.0 && degrees <= 135.0 {
             return ("at", "4", "o'clock")
         } else if degrees > 135.0 && degrees <= 165.0 {
             return ("at", "5", "o'clock")
         } else {
-            return ("straight", "behind", "")
+            return ("at", "6", "o'clock")
         }
     }
     

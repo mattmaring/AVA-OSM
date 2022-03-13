@@ -22,7 +22,6 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
     @IBOutlet weak var arrowImage: UIImageView!
     @IBOutlet weak var circleImage: UIImageView!
     @IBOutlet weak var sceneView: ARSCNView!
-    @IBOutlet weak var uwb_data: UILabel!
     
     @IBAction func cancelAction(_ sender: Any) {
         speechSynthesizer.stopSpeaking(at: .immediate)
@@ -119,7 +118,6 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
         
         arrowImage.isHidden = true
         circleImage.isHidden = true
-        uwb_data.text = ""
         
         sceneView.session.delegate = self
         
@@ -270,6 +268,8 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
     func pointingTap() {
         let generator = UIImpactFeedbackGenerator(style: .rigid)
         generator.impactOccurred()
+        generator.impactOccurred()
+        generator.impactOccurred()
     }
     
     @objc func closeTap() {
@@ -289,25 +289,25 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
         } else if degrees >= -135.0 && degrees < -105.0 {
             return ("at", "8", "o'clock")
         } else if degrees >= -105.0 && degrees < -75.0 {
-            return ("to your", "left", "")
+            return ("at", "9", "o'clock")
         } else if degrees >= -75.0 && degrees < -45.0 {
             return ("at", "10", "o'clock")
         } else if degrees >= -45.0 && degrees < -15.0 {
             return ("at", "11", "o'clock")
         } else if degrees >= -15.0 && degrees <= 15.0 {
-            return ("straight", "ahead", "")
+            return ("at", "12", "o'clock")
         } else if degrees > 15.0 && degrees <= 45.0 {
             return ("at", "1", "o'clock")
         } else if degrees > 45.0 && degrees <= 75.0 {
             return ("at", "2", "o'clock")
         } else if degrees > 75.0 && degrees <= 105.0 {
-            return ("to your", "right", "")
+            return ("at", "1", "o'clock")
         } else if degrees > 105.0 && degrees <= 135.0 {
             return ("at", "4", "o'clock")
         } else if degrees > 135.0 && degrees <= 165.0 {
             return ("at", "5", "o'clock")
         } else {
-            return ("straight", "behind", "")
+            return ("at", "6", "o'clock")
         }
     }
     
