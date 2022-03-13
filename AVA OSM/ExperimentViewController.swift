@@ -18,13 +18,21 @@ class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
     
     @IBAction func pracPhase1(_ sender: Any) {
         if startExperiment() {
-            experiment = "pracPhase1"
+            let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+            let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
+            trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
+            trackerViewController.modalPresentationStyle = .fullScreen
+            self.present(trackerViewController, animated: true, completion: nil)
         }
     }
     
     @IBAction func pracPhase2(_ sender: Any) {
         if startExperiment() {
-            experiment = "pracPhase2"
+            let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+            let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
+            trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
+            trackerViewController.modalPresentationStyle = .fullScreen
+            self.present(trackerViewController, animated: true, completion: nil)
         }
     }
     
@@ -119,16 +127,6 @@ class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
         if experiment != nil {
             let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
             switch experiment {
-                case "pracPhase1":
-                    let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
-                    trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
-                    trackerViewController.modalPresentationStyle = .fullScreen
-                    self.present(trackerViewController, animated: true, completion: nil)
-                case "pracPhase2":
-                    let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
-                    trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
-                    trackerViewController.modalPresentationStyle = .fullScreen
-                    self.present(trackerViewController, animated: true, completion: nil)
                 case "phase1GPS":
                     let gpsViewController = storyBoard.instantiateViewController(withIdentifier: "GPSViewController") as! GPSViewController
                     gpsViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
