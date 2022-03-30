@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 import CoreBluetooth
 import os
 
@@ -341,6 +342,7 @@ extension DataCommunicationChannel: CBPeripheralDelegate {
         // Check if the peripheral reported an error.
         if let error = error {
             logger.error("Error changing notification state: \(error.localizedDescription)")
+            print("An error has occured, please stop the experiment a restart the sensor.")
             return
         }
 

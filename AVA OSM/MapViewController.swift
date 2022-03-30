@@ -149,10 +149,9 @@ enum State {
 }
 
 // MARK: - MapViewController
-class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
+class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate, AVSpeechSynthesizerDelegate {
     
     @IBOutlet weak var textView: UITextView!
-    @IBOutlet weak var poisTextView: UITextView!
     @IBOutlet weak var container: UIView!
 //    @IBOutlet weak var modeText: UILabel!
 //    @IBAction func switchMode(_ sender: Any) {
@@ -190,7 +189,8 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     var routeResponse: RouteResponse?
     
     // OpenRouteService API
-    var destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
+    var origin = CLLocationCoordinate2D(latitude: 44.56446, longitude: -69.65968)
+    var destination = CLLocationCoordinate2D(latitude: 44.56319, longitude: -69.66056)
     var routeOptions = NavigationRouteOptions(waypoints: [])
     
 //    let exit_ref_spatial = "rear"
@@ -207,11 +207,13 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     // MARK: - Speech
     var speechSynthesizer = AVSpeechSynthesizer()
     
-    let pois = ["in 10 ft, there are stairs straight ahead",
-                "in 10 ft, there is a bench on your left",
-                "in 8 ft, there is a tree close by to the left of the sidewalk",
-                "in ",
-                ""]
+    let pois = ["in 10 ft, there is a ramp straight ahead",
+                "in 8 ft, there is a bench on your left",
+                "in 9 ft, there is a tree close by to the right of the sidewalk"]
+    let coordinates = [CLLocation(latitude: 44.56432772532755, longitude: -69.65980729473644),
+                       CLLocation(latitude: 44.56386405963009, longitude: -69.66041628267189),
+                       CLLocation(latitude: 44.56350224523806, longitude: -69.66050750082678)]
+    var currentPOI = 0
     
     let contrastLabel = UIColor(named: "contrastLabelColor")
     
@@ -231,15 +233,15 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
 //        view.addSubview(poisButton)
 //        view.addSubview(trackerButton)
         
-        //speechSynthesizer.delegate = self
+        speechSynthesizer.delegate = self
         
-//        let utterance = AVSpeechUtterance(string: "Your vehicle has arrived to the Eustis Parking Lot! Upon exiting the front entrance of Davis, your autonomous vehicle is located approximately 600ft slightly right from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided.")
-//        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-//        //utterance.rate = 1.0
-//        speechSynthesizer.speak(utterance)
+        let utterance = AVSpeechUtterance(string: "Your vehicle has arrived to the Eustis Parking Lot! Upon exiting the front entrance of Davis, your autonomous vehicle is located approximately 600ft slightly right from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided.")
+        utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+        //utterance.rate = 1.0
+        speechSynthesizer.speak(utterance)
         
         container.isHidden = true
-        poisTextView.isHidden = true
+        //poisTextView.isHidden = true
         textView.isHidden = false
         
 //        textView.text = "Upon exiting from the \(exit_ref_spatial) entrance of \(building_nickname), your autonomous vehicle is located \(parking_distance) to the \(parking_direction) in the \(parking_type). Use the sensor naviagtion to locate the rear driver side door handle."
@@ -260,6 +262,18 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
 //        container.isHidden = true
 //    }
     
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = manager.location, currentPOI < pois.count {
+            if location.distance(from: coordinates[currentPOI]) < 4.0 {
+                let utterance = AVSpeechUtterance(string: pois[currentPOI])
+                utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+                //utterance.rate = 1.0
+                speechSynthesizer.speak(utterance)
+                currentPOI += 1
+            }
+        }
+    }
+    
     func newJSONDecoder() -> JSONDecoder {
         let decoder = JSONDecoder()
         if #available(iOS 10.0, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
@@ -271,34 +285,34 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     // MARK: - updateDirections
     func updateDirections() {
         if let curLocation = locationManager.location {
-            if curLocation.distance(from: CLLocation(latitude: destination.latitude, longitude: destination.longitude)) < 10.0 {
-                let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
-                let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
-                trackerViewController.destination = CLLocation(latitude: destination.latitude, longitude: destination.longitude)
-                trackerViewController.modalPresentationStyle = .fullScreen
-                self.present(trackerViewController, animated: true, completion: nil)
-            } else {
-                let origin = Waypoint(coordinate: curLocation.coordinate, name: "Current Location")
-                //let origin = Waypoint(coordinate: origin, name: "Current Location")
-                let destination = Waypoint(coordinate: destination, name: "Autonomous Vehicle")
-                
-                routeOptions = NavigationRouteOptions(waypoints: [origin, destination])
-                routeOptions.profileIdentifier = .walking
-                routeOptions.includesAlternativeRoutes = false
-                routeOptions.includesVisualInstructions = true
-                Directions.shared.calculate(routeOptions) { [weak self] (session, result) in
-                    switch result {
-                    case .failure(let error):
-                        print(error.localizedDescription)
-                    case .success(let response):
-                        guard let strongSelf = self else {
-                            return
-                        }
-                        strongSelf.routeResponse = response
-                        strongSelf.presentDirections()
+//            if curLocation.distance(from: CLLocation(latitude: destination.latitude, longitude: destination.longitude)) < 10.0 {
+//                let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+//                let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
+//                trackerViewController.destination = CLLocation(latitude: destination.latitude, longitude: destination.longitude)
+//                trackerViewController.modalPresentationStyle = .fullScreen
+//                self.present(trackerViewController, animated: true, completion: nil)
+//            } else {
+            let origin = Waypoint(coordinate: curLocation.coordinate, name: "Current Location")
+            //let origin = Waypoint(coordinate: origin, name: "Current Location")
+            let destination = Waypoint(coordinate: destination, name: "Autonomous Vehicle")
+            
+            routeOptions = NavigationRouteOptions(waypoints: [origin, destination])
+            routeOptions.profileIdentifier = .walking
+            routeOptions.includesAlternativeRoutes = false
+            routeOptions.includesVisualInstructions = true
+            Directions.shared.calculate(routeOptions) { [weak self] (session, result) in
+                switch result {
+                case .failure(let error):
+                    print(error.localizedDescription)
+                case .success(let response):
+                    guard let strongSelf = self else {
+                        return
                     }
+                    strongSelf.routeResponse = response
+                    strongSelf.presentDirections()
                 }
             }
+            //}
         }
     }
     
@@ -307,16 +321,16 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         
         container.isHidden = false
         textView.isHidden = true
-        poisTextView.isHidden = false
+        //poisTextView.isHidden = false
         
-        poisTextView.text = pois[0]
+        //poisTextView.text = pois[currentPOI]
         
         // Since first route is retrieved from response `routeIndex` is set to 0.
         let navigationService = MapboxNavigationService(routeResponse: routeResponse, routeIndex: 0, routeOptions: routeOptions)
         let navigationOptions = NavigationOptions(styles: [CustomStyle()], navigationService: navigationService)
         let navigationViewController = NavigationViewController(for: routeResponse, routeIndex: 0, routeOptions: routeOptions, navigationOptions: navigationOptions)
         navigationViewController.routeLineTracksTraversal = true
-        //navigationViewController.
+        navigationViewController.detailedFeedbackEnabled = true
         navigationViewController.navigationMapView?.userLocationStyle = .courseView()
         
         navigationViewController.delegate = self
@@ -331,18 +345,13 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         ])
         self.didMove(toParent: self)
     }
-    
-    // MARK: - locationManager
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        //updateDirections()
-    }
 }
 
 extension MapViewController: NavigationViewControllerDelegate {
     func navigationViewControllerDidDismiss(_ navigationViewController: NavigationViewController, byCanceling canceled: Bool) {
         navigationController?.popViewController(animated: true)
         container.isHidden = true
-        poisTextView.isHidden = true
+        //poisTextView.isHidden = true
         textView.isHidden = false
     }
 }

@@ -60,7 +60,7 @@ class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
         if startExperiment() {
             let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
             let mapViewController = storyBoard.instantiateViewController(withIdentifier: "MapViewController") as! MapViewController
-            mapViewController.destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
+            mapViewController.destination = CLLocationCoordinate2D(latitude: 44.56319, longitude: -69.66056)
             mapViewController.modalPresentationStyle = .fullScreen
             self.present(mapViewController, animated: true, completion: nil)
         }
@@ -69,7 +69,7 @@ class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
     @IBAction func normalOps(_ sender: Any) {
         let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
         let mapViewController = storyBoard.instantiateViewController(withIdentifier: "MapViewController") as! MapViewController
-        mapViewController.destination = CLLocationCoordinate2D(latitude: 44.56320, longitude: -69.66136)
+        mapViewController.destination = CLLocationCoordinate2D(latitude: 44.89844564224439, longitude: -68.6711917617844)
         mapViewController.modalPresentationStyle = .fullScreen
         self.present(mapViewController, animated: true, completion: nil)
     }

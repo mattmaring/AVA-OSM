@@ -15,7 +15,6 @@ import simd
 import MapKit
 import AVFoundation
 import os.log
-import KalmanFilter
 
 struct Distance {
     var distance: Float
@@ -126,27 +125,25 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     
     // MARK: - Variables
     // Timers
-    var connectionTimer = Timer()
+    weak var connectionTimer: Timer?
     weak var hapticFeedbackTimer: Timer?
     weak var audioTimer: Timer?
     var timeInterval = 0.01
     var timerCounter: Float = 0.0
     
     // Default values
-    let CLOSE_RANGE : Float = 2.0 / 3.0
-    var thresholdValue : Float = 90.0
+    let CLOSE_RANGE : Float = 0.6096 // 2.0 feet
     
     // GPS location storage
     var car_distance: Float = 999999.0
     var car_yaw: Float = 999.0
-    var destination = CLLocation(latitude: 44.56320, longitude: -69.66136)
+    var destination = CLLocation(latitude: 44.89844564224439, longitude: -68.6711917617844)
     
     // uwb location storage
     var uwb_distance : Float? = Optional.none
     var uwb_yaw : Float? = Optional.none
     var uwb_pitch : Float? = Optional.none
     var prevDirection : Float? = Optional.none
-    var iterations : Int = 0
     
     //var distanceFilter = KalmanFilter(stateEstimatePrior: 0.0, errorCovariancePrior: 1)
     
@@ -199,8 +196,23 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         speechSynthesizer.delegate = self
         sceneView.session.delegate = self
         
-        let doorHandle = ARWWorldAnchor(column3: [0, 0, 0, 1])
-        sceneView.session.add(anchor: ARAnchor(anchor: doorHandle))
+        // Scene blur
+        let blur = UIBlurEffect(style: .systemMaterialDark)
+        let blurView = UIVisualEffectView(effect: blur)
+        blurView.frame = sceneView.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        sceneView.addSubview(blurView)
+        
+        boxNode.geometry = SCNBox(width: 0.05, height: 0.05, length: 0.05, chamferRadius: 0)
+        boxNode.position = SCNVector3(0, 0, 0)
+        boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.clear
+        sceneView.scene.rootNode.addChildNode(boxNode)
+        
+        let configuration = ARWorldTrackingConfiguration()
+        configuration.isLightEstimationEnabled = true
+        configuration.worldAlignment = .gravityAndHeading
+        configuration.planeDetection = [.horizontal, .vertical]
+        sceneView.session.run(configuration)
         
         // Initialize visualizations
         let attributedString1 = NSMutableAttributedString(string: "\n-.--", attributes: attributes1)
@@ -219,34 +231,15 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         dataChannel.accessoryDataHandler = accessorySharedData
         dataChannel.start()
         
-        connectionTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(restoreSession), userInfo: nil, repeats: true)
+        connectionTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] connectionTimer in
+                    self?.restoreSession()
+                }
         
         updateVisualization()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        let configuration = ARWorldTrackingConfiguration()
-        configuration.isLightEstimationEnabled = true
-        configuration.worldAlignment = .gravityAndHeading
-        configuration.planeDetection = [.horizontal, .vertical]
-        sceneView.session.run(configuration)
-        
-        addBox()
-        
-        //sceneView.debugOptions = [ARSCNDebugOptions.showWorldOrigin]
-        
-        // Scene blur
-        let blur = UIBlurEffect(style: .regular)
-        let blurView = UIVisualEffectView(effect: blur)
-        blurView.frame = sceneView.bounds
-        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        sceneView.addSubview(blurView)
-    }
-    
     deinit {
-        connectionTimer.invalidate()
+        connectionTimer?.invalidate()
         hapticFeedbackTimer?.invalidate()
         audioTimer?.invalidate()
     }
@@ -255,7 +248,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         if uwbConnectionActive == false {
             sendDataToAccessory(Data([MessageId.initialize.rawValue]))
         } else {
-            connectionTimer.invalidate()
+            connectionTimer?.invalidate()
         }
     }
     
@@ -364,6 +357,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     
     func pointingTap() {
         let generator = UIImpactFeedbackGenerator(style: .rigid)
+        generator.prepare()
         generator.impactOccurred()
         generator.impactOccurred()
         generator.impactOccurred()
@@ -374,19 +368,12 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         if timerCounter >= Float(timeInterval) {
             timerCounter = 0.0
             let generator = UIImpactFeedbackGenerator(style: .heavy)
+            generator.prepare()
             generator.impactOccurred()
         }
     }
     
     // MARK: - ARSession
-    
-    func addBox() {
-        print("called add box")
-        boxNode.geometry = SCNBox(width: 0.05, height: 0.05, length: 0.05, chamferRadius: 0)
-        boxNode.position = SCNVector3(0, 0, 0)
-        boxNode.geometry?.firstMaterial?.diffuse.contents = UIColor.clear
-        sceneView.scene.rootNode.addChildNode(boxNode)
-    }
     
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         if let lightIntensity = frame.lightEstimate?.ambientIntensity, lightIntensity < 100.0 { //1000 is normal
@@ -419,7 +406,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         } else if degrees > 45.0 && degrees <= 75.0 {
             return ("at", "2", "o'clock")
         } else if degrees > 75.0 && degrees <= 105.0 {
-            return ("at", "1", "o'clock")
+            return ("at", "3", "o'clock")
         } else if degrees > 105.0 && degrees <= 135.0 {
             return ("at", "4", "o'clock")
         } else if degrees > 135.0 && degrees <= 165.0 {
@@ -513,10 +500,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 format = "%0.1f"
             }
             let distanceFill = String(format: format, distance * 3.280839895)
-            if distance < 1.0 / 3.0 {
+            if distance < 0.3048 /*1.0 feet*/ {
                 let attributedString1 = NSMutableAttributedString(string: "Within ", attributes: attributes2)
                 let attributedString2 = NSMutableAttributedString(string: "1 ", attributes: attributes1)
-                let attributedString3 = NSMutableAttributedString(string: "foot\n", attributes: attributes2)
+                let attributedString3 = NSMutableAttributedString(string: "ft", attributes: attributes2)
                 
                 attributedString1.append(attributedString2)
                 attributedString1.append(attributedString3)
@@ -620,7 +607,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     }
     
     func isValidDirection(direction: simd_float3) -> Bool {
-        return abs(azimuth(from: direction).radiansToDegrees) < thresholdValue && abs(elevation(from: direction).radiansToDegrees) < 90.0
+        //print(azimuth(from: direction).radiansToDegrees, elevation(from: direction).radiansToDegrees)
+        return abs(azimuth(from: direction).radiansToDegrees) < 22.5 && abs(elevation(from: direction).radiansToDegrees) < 35.0
     }
     
     func isValidData(direction: Float) -> Bool {
@@ -631,9 +619,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             prevDirection = nil
             uwb_distance = nil
             uwb_yaw = nil
-            iterations = 0
-            thresholdValue = 90.0
             if let accessory = storedObject, shouldRetry(accessory) {
+                print("Recalibrating")
                 sendDataToAccessory(Data([MessageId.stop.rawValue]))
                 sendDataToAccessory(Data([MessageId.initialize.rawValue]))
             } else {
@@ -644,8 +631,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
         if let dir = prevDirection, uwb_distance! > CLOSE_RANGE {
             if abs(dir.radiansToDegrees) >= 10.0 && abs(direction.radiansToDegrees) < 10.0 {
-                pointingTap()
-                pointingTap()
                 pointingTap()
             }
         }
@@ -675,15 +660,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
 
     func updateObject() {
         if let accessory = storedObject, accessoryConnected /*&& !arrived*/ && !lightTooLow && uwbConnectionActive {
-            if iterations < 3 {
-                //print(iterations, thresholdValue)
-                if let _ = accessory.distance, let direction = accessory.direction, isValidDirection(direction: direction) {
-                    iterations += 1
-                    thresholdValue -= 22.5
-                }
-            } else if iterations == 3 {
-                //print(iterations, thresholdValue)
-                iterations += 1
+            if let distance = accessory.distance, calibrating {
+                uwb_distance = distance
+            }
+            if let direction = accessory.direction, calibrating, uwb_distance != nil, isValidDirection(direction: direction) {
                 calibrating = false
             }
             
@@ -741,6 +721,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                     uwb_pitch = elevation.radiansToDegrees
                 } else if cubeMoved() {
                     guard let camera = sceneView.session.currentFrame?.camera else { return }
+                    guard let orientation = sceneView.pointOfView?.orientation else { return }
                     guard let position = sceneView.pointOfView?.position else { return }
                     // print(position, camera.eulerAngles.y)
 
@@ -795,7 +776,10 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                         }
                     }
                     
-                    var yaw = move_angle + camera.eulerAngles.y
+                    let x = 2.0 * orientation.y * orientation.w - 2.0 * orientation.x * orientation.z
+                    let y = 1.0 - 2.0 * pow(orientation.y, 2) - 2.0 * pow(orientation.z, 2)
+                    //print(atan2(x, y).radiansToDegrees)
+                    var yaw = move_angle + atan2(x, y)
                     if yaw <= -.pi {
                         yaw += 2 * .pi
                     } else if yaw > .pi {
@@ -807,6 +791,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                     
                     uwb_yaw = yaw.radiansToDegrees
                 }
+                
+                //print(uwb_yaw)
                 
                 if uwb_distance! < CLOSE_RANGE {
                     timeInterval = getTimeInterval(distance: uwb_distance!)
@@ -852,7 +838,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     }
 
     func sessionSuspensionEnded(_ session: NISession) {
-        print("trying again")
         sendDataToAccessory(Data([MessageId.initialize.rawValue]))
     }
 

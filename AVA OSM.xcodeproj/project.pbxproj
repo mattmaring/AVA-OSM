@@ -16,16 +16,15 @@
 		C0395436268DF30700E2ACB9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C0395434268DF30700E2ACB9 /* LaunchScreen.storyboard */; };
 		C0395441268DF30700E2ACB9 /* AVA_OSMTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0395440268DF30700E2ACB9 /* AVA_OSMTests.swift */; };
 		C039544C268DF30800E2ACB9 /* AVA_OSMUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039544B268DF30800E2ACB9 /* AVA_OSMUITests.swift */; };
+		C049CE9F27F3489B0048D9EA /* MapboxCoreNavigation in Frameworks */ = {isa = PBXBuildFile; productRef = C049CE9E27F3489B0048D9EA /* MapboxCoreNavigation */; };
+		C049CEA127F3489B0048D9EA /* MapboxNavigation in Frameworks */ = {isa = PBXBuildFile; productRef = C049CEA027F3489B0048D9EA /* MapboxNavigation */; };
 		C054C43B269DAFA600BD0DB8 /* TableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C054C43A269DAFA600BD0DB8 /* TableViewCell.swift */; };
 		C065539627029648001036AF /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C065539527029648001036AF /* ARKit.framework */; };
 		C065539827033EA7001036AF /* ARWorldAnchor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C065539727033EA7001036AF /* ARWorldAnchor.swift */; };
-		C067AB1827239160007C7F90 /* MapboxNavigation in Frameworks */ = {isa = PBXBuildFile; productRef = C067AB1727239160007C7F90 /* MapboxNavigation */; };
-		C067AB1A27239164007C7F90 /* MapboxCoreNavigation in Frameworks */ = {isa = PBXBuildFile; productRef = C067AB1927239164007C7F90 /* MapboxCoreNavigation */; };
 		C080499B27AA0EC20078C00E /* ExperimentViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C080499A27AA0EC20078C00E /* ExperimentViewController.swift */; };
 		C098B73D269CB0CF0024D77F /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73C269CB0CF0024D77F /* MapViewController.swift */; };
 		C098B73F269CB8880024D77F /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C098B73E269CB8880024D77F /* TableViewController.swift */; };
 		C099772D27DAF19700EC732C /* GPSViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C099772C27DAF19700EC732C /* GPSViewController.swift */; };
-		C0B19C5A27B864D40055CB74 /* KalmanFilter in Frameworks */ = {isa = PBXBuildFile; productRef = C0B19C5927B864D40055CB74 /* KalmanFilter */; };
 		C0EF9D4726A745F9009CF3E8 /* NearbyInteraction.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */; };
 		C0EF9D4926A74604009CF3E8 /* MultipeerConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C0EF9D4826A74604009CF3E8 /* MultipeerConnectivity.framework */; };
 		C0EF9D4B26A74639009CF3E8 /* TrackerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0EF9D4A26A74639009CF3E8 /* TrackerViewController.swift */; };
@@ -71,6 +70,7 @@
 		C098B73C269CB0CF0024D77F /* MapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
 		C098B73E269CB8880024D77F /* TableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewController.swift; sourceTree = "<group>"; };
 		C099772C27DAF19700EC732C /* GPSViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPSViewController.swift; sourceTree = "<group>"; };
+		C0ED25C227DFF19C0092A14C /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NearbyInteraction.framework; path = System/Library/Frameworks/NearbyInteraction.framework; sourceTree = SDKROOT; };
 		C0EF9D4826A74604009CF3E8 /* MultipeerConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MultipeerConnectivity.framework; path = System/Library/Frameworks/MultipeerConnectivity.framework; sourceTree = SDKROOT; };
 		C0EF9D4A26A74639009CF3E8 /* TrackerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerViewController.swift; sourceTree = "<group>"; };
@@ -81,12 +81,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C049CEA127F3489B0048D9EA /* MapboxNavigation in Frameworks */,
+				C049CE9F27F3489B0048D9EA /* MapboxCoreNavigation in Frameworks */,
 				C065539627029648001036AF /* ARKit.framework in Frameworks */,
 				C0EF9D4726A745F9009CF3E8 /* NearbyInteraction.framework in Frameworks */,
-				C0B19C5A27B864D40055CB74 /* KalmanFilter in Frameworks */,
 				C0EF9D4926A74604009CF3E8 /* MultipeerConnectivity.framework in Frameworks */,
-				C067AB1827239160007C7F90 /* MapboxNavigation in Frameworks */,
-				C067AB1A27239164007C7F90 /* MapboxCoreNavigation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -171,6 +170,7 @@
 		C0EF9D4526A745F9009CF3E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C0ED25C227DFF19C0092A14C /* CloudKit.framework */,
 				C065539527029648001036AF /* ARKit.framework */,
 				C0EF9D4826A74604009CF3E8 /* MultipeerConnectivity.framework */,
 				C0EF9D4626A745F9009CF3E8 /* NearbyInteraction.framework */,
@@ -196,9 +196,8 @@
 			);
 			name = "AVA OSM";
 			packageProductDependencies = (
-				C067AB1727239160007C7F90 /* MapboxNavigation */,
-				C067AB1927239164007C7F90 /* MapboxCoreNavigation */,
-				C0B19C5927B864D40055CB74 /* KalmanFilter */,
+				C049CE9E27F3489B0048D9EA /* MapboxCoreNavigation */,
+				C049CEA027F3489B0048D9EA /* MapboxNavigation */,
 			);
 			productName = "AVA OSM";
 			productReference = C0395426268DF30600E2ACB9 /* AVA OSM.app */;
@@ -272,8 +271,7 @@
 			);
 			mainGroup = C039541D268DF30600E2ACB9;
 			packageReferences = (
-				C04516882722461C00228C03 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */,
-				C0B19C5827B864D40055CB74 /* XCRemoteSwiftPackageReference "KalmanFilter" */,
+				C049CE9D27F3489B0048D9EA /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */,
 			);
 			productRefGroup = C0395427268DF30600E2ACB9 /* Products */;
 			projectDirPath = "";
@@ -693,39 +691,26 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		C04516882722461C00228C03 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */ = {
+		C049CE9D27F3489B0048D9EA /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mapbox/mapbox-navigation-ios.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.0;
-			};
-		};
-		C0B19C5827B864D40055CB74 /* XCRemoteSwiftPackageReference "KalmanFilter" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/magyarosibotond/KalmanFilter";
-			requirement = {
-				branch = master;
-				kind = branch;
+				kind = upToNextMinorVersion;
+				minimumVersion = 2.3.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		C067AB1727239160007C7F90 /* MapboxNavigation */ = {
+		C049CE9E27F3489B0048D9EA /* MapboxCoreNavigation */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = C04516882722461C00228C03 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */;
-			productName = MapboxNavigation;
-		};
-		C067AB1927239164007C7F90 /* MapboxCoreNavigation */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C04516882722461C00228C03 /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */;
+			package = C049CE9D27F3489B0048D9EA /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */;
 			productName = MapboxCoreNavigation;
 		};
-		C0B19C5927B864D40055CB74 /* KalmanFilter */ = {
+		C049CEA027F3489B0048D9EA /* MapboxNavigation */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = C0B19C5827B864D40055CB74 /* XCRemoteSwiftPackageReference "KalmanFilter" */;
-			productName = KalmanFilter;
+			package = C049CE9D27F3489B0048D9EA /* XCRemoteSwiftPackageReference "mapbox-navigation-ios" */;
+			productName = MapboxNavigation;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

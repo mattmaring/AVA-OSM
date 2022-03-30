@@ -1,124 +1,113 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "KalmanFilter",
-        "repositoryURL": "https://github.com/magyarosibotond/KalmanFilter",
-        "state": {
-          "branch": "master",
-          "revision": "fde4119acda1d3874c4d7e8c12f115de08e2906e",
-          "version": null
-        }
-      },
-      {
-        "package": "MapboxCommon",
-        "repositoryURL": "https://github.com/mapbox/mapbox-common-ios.git",
-        "state": {
-          "branch": null,
-          "revision": "aa0f8e257a5ec929afbf1bb8f98f5e8a032ff45c",
-          "version": "20.1.2"
-        }
-      },
-      {
-        "package": "MapboxCoreMaps",
-        "repositoryURL": "https://github.com/mapbox/mapbox-core-maps-ios.git",
-        "state": {
-          "branch": null,
-          "revision": "bbb4a7406340acbbcc0d88bc992e9db5fda0faf1",
-          "version": "10.1.1"
-        }
-      },
-      {
-        "package": "MapboxDirections",
-        "repositoryURL": "https://github.com/mapbox/mapbox-directions-swift.git",
-        "state": {
-          "branch": null,
-          "revision": "3371531c62e8abe5acecbdde403bd84e8d2b077e",
-          "version": "2.1.0"
-        }
-      },
-      {
-        "package": "MapboxMobileEvents",
-        "repositoryURL": "https://github.com/mapbox/mapbox-events-ios.git",
-        "state": {
-          "branch": null,
-          "revision": "e29f48d9ed02b31ef51f9774a9c45f1d7c2c2b78",
-          "version": "1.0.6"
-        }
-      },
-      {
-        "package": "MapboxMaps",
-        "repositoryURL": "https://github.com/mapbox/mapbox-maps-ios.git",
-        "state": {
-          "branch": null,
-          "revision": "5fe7baa9a60f8380d6b20ce0f5a625313ebc6c4f",
-          "version": "10.1.2"
-        }
-      },
-      {
-        "package": "MapboxNavigation",
-        "repositoryURL": "https://github.com/mapbox/mapbox-navigation-ios.git",
-        "state": {
-          "branch": null,
-          "revision": "8636b5517a158a83c2533c9ecaf87097fa32c0e6",
-          "version": "2.0.1"
-        }
-      },
-      {
-        "package": "MapboxNavigationNative",
-        "repositoryURL": "https://github.com/mapbox/mapbox-navigation-native-ios.git",
-        "state": {
-          "branch": null,
-          "revision": "3ddee8efad42082032f872b476cb5b3b6e73bb42",
-          "version": "69.0.3"
-        }
-      },
-      {
-        "package": "MapboxSpeech",
-        "repositoryURL": "https://github.com/mapbox/mapbox-speech-swift.git",
-        "state": {
-          "branch": null,
-          "revision": "b0a6008c184c1010dac11e14bf20afe4261d8c36",
-          "version": "2.0.0"
-        }
-      },
-      {
-        "package": "Polyline",
-        "repositoryURL": "https://github.com/raphaelmor/Polyline.git",
-        "state": {
-          "branch": null,
-          "revision": "36f7b1222aaf8fa741d0d179c12e186998d97f42",
-          "version": "5.0.2"
-        }
-      },
-      {
-        "package": "Solar",
-        "repositoryURL": "https://github.com/ceeK/Solar.git",
-        "state": {
-          "branch": null,
-          "revision": "c2b96f2d5fb7f835b91cefac5e83101f54643901",
-          "version": "3.0.1"
-        }
-      },
-      {
-        "package": "swift-argument-parser",
-        "repositoryURL": "https://github.com/apple/swift-argument-parser",
-        "state": {
-          "branch": null,
-          "revision": "e1465042f195f374b94f915ba8ca49de24300a0d",
-          "version": "1.0.2"
-        }
-      },
-      {
-        "package": "Turf",
-        "repositoryURL": "https://github.com/mapbox/turf-swift.git",
-        "state": {
-          "branch": null,
-          "revision": "132aaf7f90fb3e334acd685ae7040a2b70b80d26",
-          "version": "2.1.0"
-        }
+  "pins" : [
+    {
+      "identity" : "mapbox-common-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/mapbox-common-ios.git",
+      "state" : {
+        "revision" : "3f9002c8140503b0c3c9d1e2a210a188bc2f5252",
+        "version" : "21.2.0"
       }
-    ]
-  },
-  "version": 1
+    },
+    {
+      "identity" : "mapbox-core-maps-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/mapbox-core-maps-ios.git",
+      "state" : {
+        "revision" : "20763d81dd2f2dee611e81f17ce892b599aa069d",
+        "version" : "10.4.1"
+      }
+    },
+    {
+      "identity" : "mapbox-directions-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/mapbox-directions-swift.git",
+      "state" : {
+        "revision" : "2b14b8c276523a01dc730897593990ef83c71320",
+        "version" : "2.3.0"
+      }
+    },
+    {
+      "identity" : "mapbox-events-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/mapbox-events-ios.git",
+      "state" : {
+        "revision" : "1b6c2a34086de40c26f2f97a716ac419f46eb630",
+        "version" : "1.0.7"
+      }
+    },
+    {
+      "identity" : "mapbox-maps-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/mapbox-maps-ios.git",
+      "state" : {
+        "revision" : "635fdd15a402be76af390757f347149aaef5349a",
+        "version" : "10.4.1"
+      }
+    },
+    {
+      "identity" : "mapbox-navigation-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/mapbox-navigation-ios.git",
+      "state" : {
+        "revision" : "d62458089e7017a1f976798e5326e50466eca9e1",
+        "version" : "2.3.1"
+      }
+    },
+    {
+      "identity" : "mapbox-navigation-native-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/mapbox-navigation-native-ios.git",
+      "state" : {
+        "revision" : "921b60a08375832088d69d023c1a7e1b4cac2231",
+        "version" : "88.0.0"
+      }
+    },
+    {
+      "identity" : "mapbox-speech-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/mapbox-speech-swift.git",
+      "state" : {
+        "revision" : "b0a6008c184c1010dac11e14bf20afe4261d8c36",
+        "version" : "2.0.0"
+      }
+    },
+    {
+      "identity" : "polyline",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/raphaelmor/Polyline.git",
+      "state" : {
+        "revision" : "36f7b1222aaf8fa741d0d179c12e186998d97f42",
+        "version" : "5.0.2"
+      }
+    },
+    {
+      "identity" : "solar",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ceeK/Solar.git",
+      "state" : {
+        "revision" : "c2b96f2d5fb7f835b91cefac5e83101f54643901",
+        "version" : "3.0.1"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser",
+      "state" : {
+        "revision" : "e1465042f195f374b94f915ba8ca49de24300a0d",
+        "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "turf-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mapbox/turf-swift.git",
+      "state" : {
+        "revision" : "132aaf7f90fb3e334acd685ae7040a2b70b80d26",
+        "version" : "2.1.0"
+      }
+    }
+  ],
+  "version" : 2
 }

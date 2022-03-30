@@ -12,7 +12,6 @@ import MapKit
 import SceneKit
 import AVFoundation
 import os.log
-import KalmanFilter
 import ARKit
 
 class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewDelegate, ARSessionDelegate {
@@ -121,6 +120,18 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
         
         sceneView.session.delegate = self
         
+        let blur = UIBlurEffect(style: .systemMaterialDark)
+        let blurView = UIVisualEffectView(effect: blur)
+        blurView.frame = sceneView.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        sceneView.addSubview(blurView)
+        
+        let configuration = ARWorldTrackingConfiguration()
+        configuration.isLightEstimationEnabled = true
+        configuration.worldAlignment = .gravityAndHeading
+        configuration.planeDetection = [.horizontal, .vertical]
+        sceneView.session.run(configuration)
+        
         // Initialize visualizations
         let attributedString1 = NSMutableAttributedString(string: "\n-.--", attributes: attributes1)
         let attributedString2 = NSMutableAttributedString(string: " ft", attributes: attributes2)
@@ -130,16 +141,6 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
         directionDescriptionLabel.attributedText = attributedString1
         
         updateVisualization()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        let blur = UIBlurEffect(style: .regular)
-        let blurView = UIVisualEffectView(effect: blur)
-        blurView.frame = sceneView.bounds
-        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        sceneView.addSubview(blurView)
     }
     
     deinit {
@@ -213,8 +214,6 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
         if prevDirection != nil && car_yaw != nil && car_distance! > CLOSE_RANGE {
             if abs(prevDirection!) >= 10.0 && abs(car_yaw!) < 10.0 {
                 pointingTap()
-                pointingTap()
-                pointingTap()
             }
         }
         prevDirection = car_yaw
@@ -267,6 +266,7 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
     
     func pointingTap() {
         let generator = UIImpactFeedbackGenerator(style: .rigid)
+        generator.prepare()
         generator.impactOccurred()
         generator.impactOccurred()
         generator.impactOccurred()
@@ -277,6 +277,7 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
         if timerCounter >= Float(timeInterval) {
             timerCounter = 0.0
             let generator = UIImpactFeedbackGenerator(style: .heavy)
+            generator.prepare()
             generator.impactOccurred()
         }
     }
