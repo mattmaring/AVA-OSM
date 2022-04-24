@@ -46,6 +46,36 @@ enum MessageId: UInt8 {
     case stop = 0xC
 }
 
+struct OutputLog: TextOutputStream {
+    
+    var title = ""
+    
+    init(_ title: String) {
+        self.title = title
+    }
+    
+    /// Appends the given string to the stream.
+    mutating func write(_ string: String) {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .allDomainsMask)
+        let documentDirectoryPath = paths.first!
+        let log = documentDirectoryPath.appendingPathComponent(self.title)
+
+        do {
+            let handle = try FileHandle(forWritingTo: log)
+            handle.seekToEndOfFile()
+            handle.write(string.data(using: .utf8)!)
+            handle.closeFile()
+        } catch {
+            print(error.localizedDescription)
+            do {
+                try string.data(using: .utf8)?.write(to: log)
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
+    }
+}
+
 class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRendererDelegate, ARSCNViewDelegate, ARSessionDelegate, AVSpeechSynthesizerDelegate, CLLocationManagerDelegate {
     
     // MARK: - `IBOutlet` instances
@@ -153,24 +183,20 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
     
     // MARK: - Logging
     let dateFormat = DateFormatter()
-    var coreLocationOutput = "timestamp, distance (ft), direction (deg), longitude, latitude, altitude, course, speed, horizontalAccuracy, verticalAccuracy, horizontalAccuracy, speedAccuracy\n"
-    var coreLocationPath = URL(string: "")
-    var nearbyInteractionOutput = "timestamp, distance (ft), yaw (deg), pitch (deg)\n"
-    var nearbyInteractionPath = URL(string: "")
-    var renderingOutput = "timestamp, distance (ft), direction (deg)\n"
-    var renderingPath = URL(string: "")
-    var visualizationOutput = ""
-    var visualizationPath = URL(string: "")
+    var outputLog : OutputLog?
+    var experiment : String? = Optional.none
+    var experimentIDTitle : String? = Optional.none
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         dateFormat.dateFormat = "y-MM-dd H:m:ss.SSSS"
-        let dateString = dateFormat.string(from: Date())
-        coreLocationPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) CoreLocation.csv")
-        nearbyInteractionPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) NearbyInteraction.csv")
-        renderingPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) Rendering.csv")
-        visualizationPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) Visualization.csv")
+        
+        outputLog = OutputLog("\(String(describing: experimentIDTitle)) - \(String(describing: experiment))")
+        
+        outputLog?.write("\(dateFormat.string(from: Date())), Starting Experiment\n")
+        outputLog?.write("\(dateFormat.string(from: Date())), Participant: \(String(describing: experimentIDTitle))\n")
+        outputLog?.write("\(dateFormat.string(from: Date())), Trial: \(String(describing: experiment))\n")
         
         circleImageSize = circleImage.bounds.size
         hapticFeedbackTimer?.invalidate()
@@ -361,6 +387,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         generator.impactOccurred()
         generator.impactOccurred()
         generator.impactOccurred()
+        outputLog?.write("\(dateFormat.string(from: Date())), pointingTap\n")
     }
     
     func closeTap() {
@@ -371,6 +398,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             generator.prepare()
             generator.impactOccurred()
         }
+        outputLog?.write("\(dateFormat.string(from: Date())), closeTap\n")
     }
     
     // MARK: - ARSession
@@ -456,6 +484,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             circleImage.isHidden = true
             arrowImage.isHidden = true
             directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Arrived at car", attributes: attributes1)
+            outputLog?.write("\(dateFormat.string(from: Date())), Arrived at car\n")
             return
         } else if lightTooLow {
             hapticFeedbackTimer?.invalidate()
@@ -463,6 +492,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             arrowImage.isHidden = true
             directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Light too low", attributes: attributes1)
             audioHandle(index: 1)
+            outputLog?.write("\(dateFormat.string(from: Date())), Light too low\n")
             return
         } else if calibrating {
             hapticFeedbackTimer?.invalidate()
@@ -470,6 +500,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             arrowImage.isHidden = true
             directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Calibrating", attributes: attributes1)
             audioHandle(index: 2)
+            outputLog?.write("\(dateFormat.string(from: Date())), Calibrating\n")
             return
         } else if searching {
             hapticFeedbackTimer?.invalidate()
@@ -477,6 +508,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             arrowImage.isHidden = true
             directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Searching for car", attributes: attributes1)
             audioHandle(index: 0)
+            outputLog?.write("\(dateFormat.string(from: Date())), Searching for car\n")
             return
         }
         
@@ -550,6 +582,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             }
             if let text = prevText, text != directionDescriptionLabel.text {
                 readDistance()
+                outputLog?.write("\(dateFormat.string(from: Date())), \(String(describing: directionDescriptionLabel))\n")
                 prevText = directionDescriptionLabel.text
             }
         } else {
@@ -559,6 +592,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             attributedString1.append(attributedString2)
             
             directionDescriptionLabel.attributedText = attributedString1
+            outputLog?.write("\(dateFormat.string(from: Date())), \(String(describing: directionDescriptionLabel))\n")
             circleImage.isHidden = true
         }
         
@@ -620,11 +654,11 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             uwb_distance = nil
             uwb_yaw = nil
             if let accessory = storedObject, shouldRetry(accessory) {
-                print("Recalibrating")
+                outputLog?.write("\(dateFormat.string(from: Date())), Recalibrating\n")
                 sendDataToAccessory(Data([MessageId.stop.rawValue]))
                 sendDataToAccessory(Data([MessageId.initialize.rawValue]))
             } else {
-                print("Stop experiment, error detected")
+                outputLog?.write("\(dateFormat.string(from: Date())), Stop experiment, error detected\n")
             }
             calibrating = true
             return false
@@ -665,6 +699,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
             }
             if let direction = accessory.direction, calibrating, uwb_distance != nil, isValidDirection(direction: direction) {
                 calibrating = false
+                outputLog?.write("\(dateFormat.string(from: Date())), \(String(describing: uwb_distance)), \(String(describing: uwb_yaw)), calibration finished\n")
             }
             
             if !calibrating {
@@ -673,12 +708,13 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                         if uwb_distance != nil && uwb_distance! < 0.03 {
                             uwb_distance = distance
                         }
+                        // Otherwise keep UWB measurement the same
                     } else if let _ = accessory.direction {
                         uwb_distance = distance
                     } else {
                         uwb_distance = distance3D()
                     }
-                    if uwb_distance == 0.0 {
+                    if uwb_distance == 0.1 {
                         arrived = true
                         //sendDataToAccessory(Data([MessageId.stop.rawValue]))
                         // Don't stop sending data until confirmation of arrival is made (use cancel or confirmation of arrival button)
@@ -690,6 +726,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                 }
                 
                 if uwb_distance == nil {
+                    outputLog?.write("\(dateFormat.string(from: Date())), \(String(describing: uwb_distance)), \(String(describing: uwb_yaw))\n")
                     return
                 }
                 
@@ -698,9 +735,15 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                     let elevation = elevation(from: direction)
                     
                     // check if distance update is valid, cancel tracking if so
-                    if !isValidData(direction: azimuth) { return }
+                    if !isValidData(direction: azimuth) {
+                        outputLog?.write("\(dateFormat.string(from: Date())), \(String(describing: uwb_distance)), \(String(describing: uwb_yaw)), distance/direction update not valid\n")
+                        return
+                    }
                     
-                    guard let camera = sceneView.session.currentFrame?.camera else { return }
+                    guard let camera = sceneView.session.currentFrame?.camera else {
+                        outputLog?.write("\(dateFormat.string(from: Date())), \(String(describing: uwb_distance)), \(String(describing: uwb_yaw)), couldn't initialize camera\n")
+                        return
+                    }
                     boxNode.simdEulerAngles = direction
                     
                     let pov = SCNVector3(x: camera.eulerAngles.x, y: camera.eulerAngles.y, z: camera.eulerAngles.z)
@@ -708,7 +751,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                     let yaw = -pov.y + azimuth
                     
                     let y = uwb_distance! * sin(pitch)
-                    let _uwb_distance = sqrt(uwb_distance! * uwb_distance! - y * y)
+                    let _uwb_distance = sqrt(pow(uwb_distance!, 2) - pow(y, 2))
                     let x = _uwb_distance * sin(yaw)
                     let z = -_uwb_distance * cos(yaw)
                     
@@ -720,7 +763,6 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                     uwb_yaw = azimuth.radiansToDegrees
                     uwb_pitch = elevation.radiansToDegrees
                 } else if cubeMoved() {
-                    guard let camera = sceneView.session.currentFrame?.camera else { return }
                     guard let orientation = sceneView.pointOfView?.orientation else { return }
                     guard let position = sceneView.pointOfView?.position else { return }
                     // print(position, camera.eulerAngles.y)
@@ -776,6 +818,7 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
                         }
                     }
                     
+                    // Use quaterrnions instead of euler angles
                     let x = 2.0 * orientation.y * orientation.w - 2.0 * orientation.x * orientation.z
                     let y = 1.0 - 2.0 * pow(orientation.y, 2) - 2.0 * pow(orientation.z, 2)
                     //print(atan2(x, y).radiansToDegrees)
@@ -808,10 +851,8 @@ class TrackerViewController: UIViewController, NISessionDelegate, SCNSceneRender
         }
         
         updateVisualization()
-//        renderingOutput += "\(dateFormat.string(from: Date())), \(uwb_distance * 3.280839895), \(uwb_yaw)\n"
-//        if let stringData = renderingOutput.data(using: .utf8) {
-//            try? stringData.write(to: renderingPath!)
-//        }
+        
+        outputLog?.write("\(dateFormat.string(from: Date())), \(String(describing: uwb_distance)), \(String(describing: uwb_yaw))\n")
     }
 
     func session(_ session: NISession, didRemove nearbyObjects: [NINearbyObject], reason: NINearbyObject.RemovalReason) {

@@ -11,8 +11,6 @@ import AVFoundation
 import CoreLocation
 
 class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
-    
-    //let destination = CLLocation(latitude: 44.564825926200015, longitude: -69.65909124016235)
 
     @IBOutlet weak var experimentID: UIButton!
     
@@ -39,7 +37,7 @@ class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
     @IBAction func phase1GPS(_ sender: Any) {
         if startExperiment() {
             experiment = "phase1GPS"
-            let utterance = AVSpeechUtterance(string: "Your vehicle has arrived! Upon exiting the rear entrance of Davis, your autonomous vehicle is located approximately 30ft slightly left from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided.")
+            let utterance = AVSpeechUtterance(string: "Your vehicle has arrived! Upon exiting the rear entrance of Davis, your autonomous vehicle is located approximately 30ft away at 12 o'clock from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided.")
             utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
             //utterance.rate = 1.0
             speechSynthesizer.speak(utterance)
@@ -49,7 +47,7 @@ class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
     @IBAction func phase1UWB(_ sender: Any) {
         if startExperiment() {
             experiment = "phase1UWB"
-            let utterance = AVSpeechUtterance(string: "Your vehicle has arrived! Upon exiting the rear entrance of Davis, your autonomous vehicle is located approximately 30ft slightly left from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided.")
+            let utterance = AVSpeechUtterance(string: "Your vehicle has arrived! Upon exiting the rear entrance of Davis, your autonomous vehicle is located approximately 30ft away at 12 o'clock from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided.")
             utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
             //utterance.rate = 1.0
             speechSynthesizer.speak(utterance)
@@ -60,7 +58,7 @@ class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
         if startExperiment() {
             let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
             let mapViewController = storyBoard.instantiateViewController(withIdentifier: "MapViewController") as! MapViewController
-            mapViewController.destination = CLLocationCoordinate2D(latitude: 44.56319, longitude: -69.66056)
+            mapViewController.destination = CLLocationCoordinate2D(latitude: 44.5630925, longitude: -69.6605774)
             mapViewController.modalPresentationStyle = .fullScreen
             self.present(mapViewController, animated: true, completion: nil)
         }
@@ -80,7 +78,7 @@ class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
     var menuItems: [UIAction] = []
     var experiment : String? = Optional.none
     var experimentIDTitle : String? = Optional.none
-    let experimentIDs = ["000001", "000002", "000003", "000004", "000005", "000006"]
+    let experimentIDs = ["000001", "000002", "000003", "000004", "000005", "000006", "000007", "000008", "000009", "000010", "000011", "000012"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -109,9 +107,6 @@ class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
             
             return false
         } else {
-            print("Starting Experiment")
-            print(experimentIDTitle)
-            
             return true
         }
     }
@@ -123,18 +118,21 @@ class ExperimentViewController: UIViewController, AVSpeechSynthesizerDelegate {
     
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         speechSynthesizer.stopSpeaking(at: .immediate)
-        print(experiment)
         if experiment != nil {
             let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
             switch experiment {
                 case "phase1GPS":
                     let gpsViewController = storyBoard.instantiateViewController(withIdentifier: "GPSViewController") as! GPSViewController
-                    gpsViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
+                    gpsViewController.destination = CLLocation(latitude: 44.564691366111255, longitude: -69.65920961471657)
+                    gpsViewController.experiment = experiment
+                    gpsViewController.experimentIDTitle = experimentIDTitle
                     gpsViewController.modalPresentationStyle = .fullScreen
                     self.present(gpsViewController, animated: true, completion: nil)
                 case "phase1UWB":
                     let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
-                    trackerViewController.destination = CLLocation(latitude: 44.56476, longitude: -69.65904)
+                    trackerViewController.destination = CLLocation(latitude: 44.564691366111255, longitude: -69.65920961471657)
+                    trackerViewController.experiment = experiment
+                    trackerViewController.experimentIDTitle = experimentIDTitle
                     trackerViewController.modalPresentationStyle = .fullScreen
                     self.present(trackerViewController, animated: true, completion: nil)
                 default:

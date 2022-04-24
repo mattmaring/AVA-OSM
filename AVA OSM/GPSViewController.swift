@@ -76,24 +76,20 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
     
     // MARK: - Logging
     let dateFormat = DateFormatter()
-    var coreLocationOutput = "timestamp, distance (ft), direction (deg), longitude, latitude, altitude, course, speed, horizontalAccuracy, verticalAccuracy, horizontalAccuracy, speedAccuracy\n"
-    var coreLocationPath = URL(string: "")
-    var nearbyInteractionOutput = "timestamp, distance (ft), yaw (deg), pitch (deg)\n"
-    var nearbyInteractionPath = URL(string: "")
-    var renderingOutput = "timestamp, distance (ft), direction (deg)\n"
-    var renderingPath = URL(string: "")
-    var visualizationOutput = ""
-    var visualizationPath = URL(string: "")
+    var outputLog : OutputLog?
+    var experiment : String? = Optional.none
+    var experimentIDTitle : String? = Optional.none
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         dateFormat.dateFormat = "y-MM-dd H:m:ss.SSSS"
-        let dateString = dateFormat.string(from: Date())
-        coreLocationPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) CoreLocation.csv")
-        nearbyInteractionPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) NearbyInteraction.csv")
-        renderingPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) Rendering.csv")
-        visualizationPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(dateString) Visualization.csv")
+        
+        outputLog = OutputLog("\(String(describing: experimentIDTitle)) - \(String(describing: experiment))")
+        
+        outputLog?.write("\(dateFormat.string(from: Date())), Starting Experiment\n")
+        outputLog?.write("\(dateFormat.string(from: Date())), Participant: \(String(describing: experimentIDTitle))\n")
+        outputLog?.write("\(dateFormat.string(from: Date())), Trial: \(String(describing: experiment))\n")
         
         circleImageSize = circleImage.bounds.size
         hapticFeedbackTimer?.invalidate()
@@ -175,6 +171,8 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
     // MARK: - Update GPS Directions
     
     func updateDirections() {
+        outputLog?.write("\(dateFormat.string(from: Date())), Accuracy: \(String(describing: locationManager.location?.horizontalAccuracy))\n")
+        
         // Update distance
         if let distance = locationManager.location?.distance(from: destination) {
             car_distance = Float(distance)
@@ -227,19 +225,8 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
             hapticFeedbackTimer?.invalidate()
         }
         updateVisualization()
-//            renderingOutput += "\(dateFormat.string(from: Date())), \(car_distance), \(car_yaw)\n"
-//            print("\(dateFormat.string(from: Date())), \(car_distance), \(car_yaw)")
-//            if let stringData = renderingOutput.data(using: .utf8) {
-//                try? stringData.write(to: renderingPath!)
-//            }
-
-//        if let location = locationManager.location {
-//            let coordinate = location.coordinate
-//            coreLocationOutput += "\(dateFormat.string(from: Date())), \(car_distance * 3.280839895), \(car_yaw), \(coordinate.longitude), \(coordinate.latitude), \(location.altitude), \(location.course), \(location.speed), \(location.horizontalAccuracy), \(location.verticalAccuracy), \(location.horizontalAccuracy), \(location.speedAccuracy)\n"
-//        }
-//            if let stringData = coreLocationOutput.data(using: .utf8) {
-//                try? stringData.write(to: coreLocationPath!)
-//            }
+        
+        outputLog?.write("\(dateFormat.string(from: Date())), \(String(describing: car_distance)), \(String(describing: car_yaw))\n")
     }
     
     // MARK: - Haptic Feedback
@@ -270,6 +257,7 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
         generator.impactOccurred()
         generator.impactOccurred()
         generator.impactOccurred()
+        outputLog?.write("\(dateFormat.string(from: Date())), pointingTap\n")
     }
     
     @objc func closeTap() {
@@ -280,6 +268,7 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
             generator.prepare()
             generator.impactOccurred()
         }
+        outputLog?.write("\(dateFormat.string(from: Date())), closeTap\n")
     }
     
     // MARK: - Visualizations
@@ -302,7 +291,7 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
         } else if degrees > 45.0 && degrees <= 75.0 {
             return ("at", "2", "o'clock")
         } else if degrees > 75.0 && degrees <= 105.0 {
-            return ("at", "1", "o'clock")
+            return ("at", "3", "o'clock")
         } else if degrees > 105.0 && degrees <= 135.0 {
             return ("at", "4", "o'clock")
         } else if degrees > 135.0 && degrees <= 165.0 {
@@ -352,6 +341,7 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
             circleImage.isHidden = true
             arrowImage.isHidden = true
             directionDescriptionLabel.attributedText = NSMutableAttributedString(string: "Arrived at car", attributes: attributes1)
+            outputLog?.write("\(dateFormat.string(from: Date())), Arrived at car\n")
             return
         }
         
@@ -417,6 +407,7 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
             }
             if let text = prevText, text != directionDescriptionLabel.text {
                 readDistance()
+                outputLog?.write("\(dateFormat.string(from: Date())), \(String(describing: directionDescriptionLabel))\n")
                 prevText = directionDescriptionLabel.text
             }
         } else {
@@ -426,6 +417,7 @@ class GPSViewController: UIViewController, CLLocationManagerDelegate, ARSCNViewD
             attributedString1.append(attributedString2)
             
             directionDescriptionLabel.attributedText = attributedString1
+            outputLog?.write("\(dateFormat.string(from: Date())), \(String(describing: directionDescriptionLabel))\n")
             circleImage.isHidden = true
         }
         

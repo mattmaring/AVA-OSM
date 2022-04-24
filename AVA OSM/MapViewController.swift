@@ -180,6 +180,8 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
         let trackerViewController = storyBoard.instantiateViewController(withIdentifier: "TrackerViewController") as! TrackerViewController
         trackerViewController.destination = CLLocation(latitude: destination.latitude, longitude: destination.longitude)
+        trackerViewController.experiment = experiment
+        trackerViewController.experimentIDTitle = experimentIDTitle
         trackerViewController.modalPresentationStyle = .fullScreen
         self.present(trackerViewController, animated: true, completion: nil)
     }
@@ -217,6 +219,12 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
     
     let contrastLabel = UIColor(named: "contrastLabelColor")
     
+    // MARK: - Logging
+    let dateFormat = DateFormatter()
+    var outputLog : OutputLog?
+    var experiment : String? = Optional.none
+    var experimentIDTitle : String? = Optional.none
+    
     // MARK: - viewDidLoad
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -233,9 +241,15 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
 //        view.addSubview(poisButton)
 //        view.addSubview(trackerButton)
         
+        outputLog = OutputLog("\(String(describing: experimentIDTitle)) - \(String(describing: experiment))")
+        
+        outputLog?.write("\(dateFormat.string(from: Date())), Starting Experiment\n")
+        outputLog?.write("\(dateFormat.string(from: Date())), Participant: \(String(describing: experimentIDTitle))\n")
+        outputLog?.write("\(dateFormat.string(from: Date())), Trial: \(String(describing: experiment))\n")
+        
         speechSynthesizer.delegate = self
         
-        let utterance = AVSpeechUtterance(string: "Your vehicle has arrived to the Eustis Parking Lot! Upon exiting the front entrance of Davis, your autonomous vehicle is located approximately 600ft slightly right from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided.")
+        let utterance = AVSpeechUtterance(string: "Your vehicle has arrived to the Eustis Parking Lot! Upon exiting the front entrance of Davis, your autonomous vehicle is located approximately 600ft away at 12 o'clock from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided.")
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
         //utterance.rate = 1.0
         speechSynthesizer.speak(utterance)
@@ -245,7 +259,8 @@ class MapViewController: UIViewController, MKMapViewDelegate, CLLocationManagerD
         textView.isHidden = false
         
 //        textView.text = "Upon exiting from the \(exit_ref_spatial) entrance of \(building_nickname), your autonomous vehicle is located \(parking_distance) to the \(parking_direction) in the \(parking_type). Use the sensor naviagtion to locate the rear driver side door handle."
-        textView.text = "Your vehicle has arrived to the Eustis Parking Lot! Upon exiting the front entrance of Davis, your autonomous vehicle is located approximately 600ft slightly right from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided."
+        
+        textView.text = "Your vehicle has arrived to the Eustis Parking Lot! Upon exiting the front entrance of Davis, your autonomous vehicle is located approximately 600ft away at 12 o'clock from your position. Please hold the smartphone in portrait mode with the rear facing camera pointed forward so that navigation guidance can be provided."
         
         locationManager.requestAlwaysAuthorization()
         if (CLLocationManager.locationServicesEnabled()) {
